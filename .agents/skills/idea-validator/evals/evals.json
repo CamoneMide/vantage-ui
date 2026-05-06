@@ -1,0 +1,23 @@
+{
+  "skill_name": "idea-validator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have an idea for an app that helps people find parking spots in busy cities. I don't know anything about coding or what tech to use. Is this worth building?",
+      "expected_output": "Deconstruct idea, ask problem/user questions, auto-resolve tech to Flutter+Firebase (or similar mobile), identify constraints (hardware, local data), final report.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I want to build a tool that automates invoice follow-ups for freelance designers. I'm a React developer. What do you think \u2014 is the market there, and what should I watch out for?",
+      "expected_output": "Research competitor landscape, confirm audience, identify risks, recommend backend/hosting for React dev (e.g., Next.js+Supabase), final report.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "What if there was a platform where you could trade skills with people in your neighborhood? Like, I teach you guitar and you fix my bike. Does something like this exist already?",
+      "expected_output": "Identify marketplace/chicken-and-egg constraints, uniqueness injection, alternative analysis, honest Go/No-Go assessment, final report.",
+      "files": []
+    }
+  ]
+}
