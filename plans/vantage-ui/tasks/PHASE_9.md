@@ -16,7 +16,7 @@
     - `customSetup.dependencies`: `{ "tailwindcss": "latest", "clsx": "latest", "tailwind-merge": "latest", "framer-motion": "latest", "class-variance-authority": "latest" }`
     - `files`: Dynamically populated from `extractionSlice.generatedCode`. File path: `/App.tsx`. Add a minimal `index.css` with Tailwind directives. Add a `tailwind.config.js` with the VantageUI token set.
     - `options.autorun: true`
-    Props: `code: string` (the generated component TSX). On `code` prop change, update the Sandpack files via `useSandpack()` hook `updateFile()`. Add JSDoc.
+      Props: `code: string` (the generated component TSX). On `code` prop change, update the Sandpack files via `useSandpack()` hook `updateFile()`. Add JSDoc.
   - **Verification:** Sandpack renders with the mock generated component. The preview pane shows the component rendered visually. Changing the `code` prop updates the editor and preview.
 
 - [ ] **Configure Sandpack editor styling**: Apply DESIGN.md aesthetics to the editor and preview panes.
@@ -24,8 +24,8 @@
     - `theme`: Use `'light'` theme (Sandpack built-in). Customize the editor wrapper to have: `background: #FFFFFF`, `border: 1px solid rgba(10,10,10,0.08)`, `border-radius: 8px`, `font-family: 'JetBrains Mono'`, `font-size: 13px`.
     - `showLineNumbers: true`
     - `showInlineErrors: true`
-    Use `<SandpackPreview>` with `showNavigator: false`, `showRefreshButton: true`. Preview wrapper: `background: #F5F5F6`, `border: 1px solid rgba(10,10,10,0.08)`, `border-radius: 8px`.
-    Use `<SandpackLayout>` to place editor (60% height) above preview (40% height) in a vertical stack within the side panel's available space.
+      Use `<SandpackPreview>` with `showNavigator: false`, `showRefreshButton: true`. Preview wrapper: `background: #F5F5F6`, `border: 1px solid rgba(10,10,10,0.08)`, `border-radius: 8px`.
+      Use `<SandpackLayout>` to place editor (60% height) above preview (40% height) in a vertical stack within the side panel's available space.
   - **Verification:** Editor and preview are both visible in the side panel without overflow. Editor uses JetBrains Mono. Preview pane has Soft White background.
 
 - [ ] **Build `SandpackToolbar` component**: Action bar above the sandbox.

@@ -21,7 +21,7 @@
     - **Design** → Palette icon
     - **Credits** → Zap icon
     - **Settings** → Settings icon
-    Each tab: icon (20px) + label (DM Sans 12px Medium). Active state: `color: #053B84`, `border-bottom: 2px solid #053B84`. Inactive: `color: rgba(10,10,10,0.6)`. Hover: Soft White `#F5F5F6` background. Tab switch triggers `animate-fade-up` on content area.
+      Each tab: icon (20px) + label (DM Sans 12px Medium). Active state: `color: #053B84`, `border-bottom: 2px solid #053B84`. Inactive: `color: rgba(10,10,10,0.6)`. Hover: Soft White `#F5F5F6` background. Tab switch triggers `animate-fade-up` on content area.
   - **Verification:** Clicking each tab updates the active indicator. Active tab shows Nero Blue underline. Inactive tabs show secondary text color. Hover state visible.
 
 - [ ] **Build `PanelContent` outlet**: Scrollable content area below the header and nav.

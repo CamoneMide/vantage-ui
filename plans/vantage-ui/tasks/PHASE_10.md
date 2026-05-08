@@ -19,8 +19,8 @@
     - Headings: Outfit SemiBold, Deep Black.
     - Body: DM Sans 14px, `rgba(10,10,10,0.8)`.
     - Code blocks: `background: #F5F5F6`, `font-family: JetBrains Mono`, `font-size: 12px`, `border-radius: 6px`, `padding: 12px`.
-    Max height: 320px with `overflow-y: auto`. Custom scrollbar styling (thin, Nero Blue thumb).
-    Animate content change on framework switch: `opacity: 0 → 1` over 150ms.
+      Max height: 320px with `overflow-y: auto`. Custom scrollbar styling (thin, Nero Blue thumb).
+      Animate content change on framework switch: `opacity: 0 → 1` over 150ms.
   - **Verification:** Prompt renders as formatted Markdown. Code blocks are styled correctly. Switching frameworks animates the content change. Scrollbar appears and is styled when content overflows.
 
 - [ ] **Build `PromptGeneratorPanel` composite component**: Assembles the full Prompt Generator view.

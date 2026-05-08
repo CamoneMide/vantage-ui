@@ -19,7 +19,7 @@
         createdAt: string; // ISO datetime
       };
       ```
-    Mix of all 3 types, spanning the last 30 days. Include 3 `spent` entries (−1 each), 1 `granted` (+5 sign-up), 1 `purchased` (+50), and a few more for variety.
+      Mix of all 3 types, spanning the last 30 days. Include 3 `spent` entries (−1 each), 1 `granted` (+5 sign-up), 1 `purchased` (+50), and a few more for variety.
   - **Verification:** All exports importable. Zod schema validates all 8 transactions in a unit test. `pnpm test` → green.
 
 - [ ] **Create / finalize Zustand credits slice**: Full credit state management.
@@ -48,7 +48,7 @@
     - 50 credits — $4.99 — "Best for individuals"
     - 100 credits — $8.99 — "Most popular" (highlighted with a Nero Blue `border: 2px solid #053B84` and a "Popular" badge, Nero Blue bg, White text, 12px)
     - 200 credits — $15.99 — "Best value"
-    Each card: White bg, `border: 1px solid rgba(10,10,10,0.08)`, `border-radius: 12px`, `padding: 16px 20px`. Selected card: Nero Blue border (`border: 2px solid #053B84`), `box-shadow: 0px 4px 12px rgba(5,59,132,0.15)`. Click selects the card. Below the 3 cards: "Purchase {n} Credits" primary Nero Blue button (full-width, shows selected pack name and price). Props: `selected`, `onSelect`. Add JSDoc.
+      Each card: White bg, `border: 1px solid rgba(10,10,10,0.08)`, `border-radius: 12px`, `padding: 16px 20px`. Selected card: Nero Blue border (`border: 2px solid #053B84`), `box-shadow: 0px 4px 12px rgba(5,59,132,0.15)`. Click selects the card. Below the 3 cards: "Purchase {n} Credits" primary Nero Blue button (full-width, shows selected pack name and price). Props: `selected`, `onSelect`. Add JSDoc.
   - **Verification:** Clicking a pack card selects it (Nero Blue border). Only one card selected at a time. "Popular" badge renders on the 100-credit card. Button text updates with selected pack.
 
 - [ ] **Build mocked Stripe purchase flow**: Simulate a checkout session.
@@ -61,7 +61,7 @@
     - Type badge: `granted` = Success green, `spent` = secondary gray, `purchased` = Nero Blue — pill badge, 11px.
     - Description: DM Sans 13px, Deep Black.
     - Amount: Outfit Medium 14px — green for positive (`+50`), red for negative (`−1`), right-aligned.
-    Even/odd row striping (White / Soft White). Max height: 240px, `overflow-y: auto` with thin Nero Blue scrollbar.
+      Even/odd row striping (White / Soft White). Max height: 240px, `overflow-y: auto` with thin Nero Blue scrollbar.
   - **Verification:** All 8 mock transactions render. Amount colors are correct (green/red). Type badges show correct colors. New transactions added during testing appear at the top.
 
 - [ ] **Assemble `CreditsTab` and wire into side panel**: Replace placeholder from Phase 5.

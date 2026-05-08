@@ -237,9 +237,9 @@ Every exported component and downloaded file must include a standardized attribu
 
 ### Key Success Metrics (v1)
 
-| Metric | Target |
-|---|---|
-| Extraction-to-renderable-sandbox rate | ≥ 80% of extractions render correctly in Sandpack without manual correction |
-| Mean time from selection to sandbox render | < 8 seconds |
-| Credit-to-paid conversion rate | ≥ 15% of users who exhaust free credits purchase a pack |
-| Credit churn (zero-balance abandonment) | < 40% of users who hit zero balance do not return |
+| Metric                                     | Target                                                                      |
+| ------------------------------------------ | --------------------------------------------------------------------------- |
+| Extraction-to-renderable-sandbox rate      | ≥ 80% of extractions render correctly in Sandpack without manual correction |
+| Mean time from selection to sandbox render | < 8 seconds                                                                 |
+| Credit-to-paid conversion rate             | ≥ 15% of users who exhaust free credits purchase a pack                     |
+| Credit churn (zero-balance abandonment)    | < 40% of users who hit zero balance do not return                           |

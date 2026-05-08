@@ -12,12 +12,14 @@ Conduct a thorough, structured review of the implementation across three dimensi
 Before reviewing, collect what you need:
 
 **Acceptance criteria** — look in this order:
+
 1. The current conversation (user may have shared a spec, ticket, or list)
 2. Recent commit messages: `git log --oneline -10`
 3. Any PRD, spec, or issue files in the repo
 4. If none found, ask the user before proceeding — you can't check coverage without knowing what to check against
 
 **Scope of changes** — understand what was actually built:
+
 ```bash
 git diff --name-only HEAD~1   # files changed in last commit
 git status                     # uncommitted changes
@@ -48,11 +50,13 @@ Be specific. Don't just say "improve error handling" — point to the exact loca
 ### Acceptance Criteria Coverage
 
 For each acceptance criterion, determine:
+
 - Is it fully implemented?
 - Are edge cases handled?
 - Does it work end-to-end, or just partially?
 
 Mark each criterion clearly:
+
 - ✅ **Implemented** — fully done
 - ⚠️ **Partial** — started but incomplete, or missing edge cases
 - ❌ **Missing** — not implemented
@@ -79,22 +83,25 @@ Use this structure:
 ## Implementation Review
 
 ### Summary
+
 [2–3 sentences: overall quality, biggest strengths, most important concerns]
 
 ### Acceptance Criteria
 
-| Criterion | Status | Notes |
-|-----------|--------|-------|
-| [criterion 1] | ✅ | |
-| [criterion 2] | ⚠️ | [what's missing] |
-| [criterion 3] | ❌ | [not found] |
+| Criterion     | Status | Notes            |
+| ------------- | ------ | ---------------- |
+| [criterion 1] | ✅     |                  |
+| [criterion 2] | ⚠️     | [what's missing] |
+| [criterion 3] | ❌     | [not found]      |
 
 ### Best Practices
 
 **What's working well:**
+
 - [specific strength]
 
 **Issues to address:**
+
 - `path/to/file.ts:42` — [issue description and why it matters]
 
 ### Performance

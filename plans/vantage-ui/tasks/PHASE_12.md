@@ -37,7 +37,7 @@
     - Right: Two icon buttons (no text, 32×32px, ghost style):
       - Re-open: Sparkles icon, Nero Blue on hover.
       - Delete: Trash2 icon, `#DC2626` on hover.
-    Add JSDoc. Animate entrance with `animate-fade-up` and a staggered `animation-delay` based on item index (0ms, 50ms, 100ms…).
+        Add JSDoc. Animate entrance with `animate-fade-up` and a staggered `animation-delay` based on item index (0ms, 50ms, 100ms…).
   - **Verification:** Item renders with all 3 zones. Thumbnail loads from picsum URL. Timestamp shows relative time. Hover states on action icons are correct colors.
 
 - [ ] **Install `date-fns` for timestamp formatting**: Required for `formatDistanceToNow`.

@@ -17,7 +17,7 @@
     3. target `inspector-toggle-popup` — "Activate the Inspector" — "Toggle the Ghost Inspector directly on any webpage."
     4. target `nav-tab-history` — "Your Extraction Library" — "Every component you extract is saved here."
     5. target `nav-tab-design` — "Design System Scanner" — "Scan any site's full design system in 2 seconds."
-    Ensure all `targetId` values are set as `id` attributes on the correct DOM elements in Phases 4–5.
+       Ensure all `targetId` values are set as `id` attributes on the correct DOM elements in Phases 4–5.
   - **Verification:** All 5 steps import. `targetId` values match `id` attributes on target DOM elements (manual check).
 
 - [ ] **Build `OnboardingBackdrop` component**: Spotlight overlay with CSS cutout.

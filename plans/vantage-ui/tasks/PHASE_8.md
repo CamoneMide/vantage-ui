@@ -29,7 +29,7 @@
     2. `store.setStep('normalizing')` → await 1000ms
     3. `store.setStep('synthesizing')` → await 1500ms
     4. `store.setSuccess(mockJsonBlueprint, mockGeneratedCode)`
-    Add a `shouldFail?: ExtractionError` param — if provided, calls `store.setError(error)` at step 3 instead of success. Export with JSDoc. Write a unit test.
+       Add a `shouldFail?: ExtractionError` param — if provided, calls `store.setError(error)` at step 3 instead of success. Export with JSDoc. Write a unit test.
   - **Verification:** Unit test with mocked `setTimeout`: correct actions are called in order with correct delays. `pnpm test` → green.
 
 - [ ] **Build `ExtractionIdleState` component**: Shown when no element is selected.
@@ -56,7 +56,7 @@
     - `cors`: "This element's resources are cross-origin restricted. Extraction was partially complete."
     - `llm-timeout`: "Synthesis timed out. This can happen with complex components. Please try again."
     - `insufficient-credits`: "You're out of credits. Purchase more to continue extracting."
-    Button: "Try Again" (secondary) or "Purchase Credits" (primary Nero Blue) for `insufficient-credits` type.
+      Button: "Try Again" (secondary) or "Purchase Credits" (primary Nero Blue) for `insufficient-credits` type.
   - **Verification:** Each error type renders the correct icon, message, and correct action button. "Purchase Credits" navigates to the Credits tab.
 
 - [ ] **Wire all states into `ExtractTab`**: Replace the placeholder from Phase 5.
