@@ -70,13 +70,16 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^4.1.5
-        version: 4.1.5(@types/node@20.11.5)(@vitest/ui@4.1.5)(jsdom@29.1.1)(vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@1.21.7)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4))
+        version: 4.1.5(@types/node@20.11.5)(@vitest/ui@4.1.5)(jsdom@29.1.1)(vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4))
 
   apps/extension:
     dependencies:
       '@vantage-ui/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      lucide-react:
+        specifier: ^0.344.0
+        version: 0.344.0(react@18.2.0)
       plasmo:
         specifier: 0.90.5
         version: 0.90.5(@swc/core@1.15.33(@swc/helpers@0.5.21))(@swc/helpers@0.5.21)(@types/node@20.11.5)(postcss@8.5.14)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(srcset@4.0.0)
@@ -159,6 +162,9 @@ importers:
         specifier: ^2.2.0
         version: 2.6.1
     devDependencies:
+      '@testing-library/react':
+        specifier: ^16.3.2
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@18.2.18)(@types/react@18.2.48)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@types/react':
         specifier: ^18.2.48
         version: 18.2.48
@@ -183,6 +189,9 @@ importers:
       typescript:
         specifier: ^5.4.5
         version: 5.9.3
+      vitest:
+        specifier: ^4.1.5
+        version: 4.1.5(@types/node@20.11.5)(@vitest/ui@4.1.5)(jsdom@29.1.1)(vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4))
 
 packages:
 
@@ -8095,13 +8104,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.5(vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@1.21.7)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4))':
+  '@vitest/mocker@4.1.5(vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4))':
     dependencies:
       '@vitest/spy': 4.1.5
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@1.21.7)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4)
+      vite: 8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4)
 
   '@vitest/pretty-format@4.1.5':
     dependencies:
@@ -8130,7 +8139,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.16
       tinyrainbow: 3.1.0
-      vitest: 4.1.5(@types/node@20.11.5)(@vitest/ui@4.1.5)(jsdom@29.1.1)(vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@1.21.7)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4))
+      vitest: 4.1.5(@types/node@20.11.5)(@vitest/ui@4.1.5)(jsdom@29.1.1)(vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4))
 
   '@vitest/utils@4.1.5':
     dependencies:
@@ -11145,7 +11154,7 @@ snapshots:
 
   utility-types@3.11.0: {}
 
-  vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@1.21.7)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4):
+  vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
@@ -11156,15 +11165,15 @@ snapshots:
       '@types/node': 20.11.5
       esbuild: 0.18.20
       fsevents: 2.3.3
-      jiti: 1.21.7
+      jiti: 2.6.1
       less: 4.6.4
       sass: 1.99.0
       yaml: 2.8.4
 
-  vitest@4.1.5(@types/node@20.11.5)(@vitest/ui@4.1.5)(jsdom@29.1.1)(vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@1.21.7)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4)):
+  vitest@4.1.5(@types/node@20.11.5)(@vitest/ui@4.1.5)(jsdom@29.1.1)(vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4)):
     dependencies:
       '@vitest/expect': 4.1.5
-      '@vitest/mocker': 4.1.5(vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@1.21.7)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4))
+      '@vitest/mocker': 4.1.5(vite@8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4))
       '@vitest/pretty-format': 4.1.5
       '@vitest/runner': 4.1.5
       '@vitest/snapshot': 4.1.5
@@ -11181,7 +11190,7 @@ snapshots:
       tinyexec: 1.1.2
       tinyglobby: 0.2.16
       tinyrainbow: 3.1.0
-      vite: 8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@1.21.7)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4)
+      vite: 8.0.11(@types/node@20.11.5)(esbuild@0.18.20)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(yaml@2.8.4)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.11.5

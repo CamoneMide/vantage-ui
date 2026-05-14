@@ -4,7 +4,8 @@ function DevAuthToggle() {
   const authState = usePopupStore((s) => s.authState);
   const toggleAuth = usePopupStore((s) => s.toggleAuth);
 
-  const isDev = typeof window !== 'undefined'
+  const isDev = process.env.NODE_ENV === 'development'
+    && typeof window !== 'undefined'
     && new URLSearchParams(window.location.search).get('dev') === '1';
 
   if (!isDev) return null;
