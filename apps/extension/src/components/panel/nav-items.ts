@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react';
 import {
   Clock, Palette, Settings, Sparkles, Zap,
 } from 'lucide-react';
@@ -8,7 +9,7 @@ import type { TabId } from '../../store/ui-slice';
 interface NavItem {
   id: TabId
   label: string
-  Icon: React.ComponentType<{ size?: number; strokeWidth?: number }>
+  Icon: LucideIcon
 }
 
 /** Ordered list of all side panel navigation items. */

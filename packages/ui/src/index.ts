@@ -27,7 +27,7 @@ export {
   CardTitle,
 } from './components/ui/card';
 export { Separator } from './components/ui/separator';
-export { Toaster, toast } from './components/ui/toast';
+export { Toaster, toast, type ToastOptions } from './components/ui/toast';
 export { Progress } from './components/ui/progress';
 export { Avatar, AvatarFallback, AvatarImage } from './components/ui/avatar';
 export { Popover, PopoverContent, PopoverTrigger } from './components/ui/popover';

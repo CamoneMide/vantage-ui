@@ -63,6 +63,7 @@ const vantageUiConfig = {
     },
   },
   plugins: [],
+  content: [],
 } satisfies Config;
 
 export default vantageUiConfig;

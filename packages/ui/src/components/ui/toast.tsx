@@ -105,6 +105,12 @@ ToastDescription.displayName = ToastPrimitives.Description.displayName;
 type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>;
 type ToastActionElement = React.ReactElement<typeof ToastAction>;
 
+export interface ToastOptions {
+  title: string;
+  description?: string;
+  variant?: 'default' | 'destructive';
+}
+
 export {
   type ToastProps,
   type ToastActionElement,
@@ -119,7 +125,7 @@ export {
 
 let toastCount = 0;
 
-export function toast(props: ToastProps) {
+export function toast(props: ToastOptions) {
   toastCount += 1;
   const id = toastCount;
   const event = new CustomEvent('vantage-ui-toast', { detail: { id, ...props } });
@@ -128,7 +134,7 @@ export function toast(props: ToastProps) {
 }
 
 export function Toaster() {
-  const [toasts, setToasts] = React.useState<ToastProps[]>([]);
+  const [toasts, setToasts] = React.useState<ToastOptions[]>([]);
 
   React.useEffect(() => {
     const handler = (e: Event) => {
@@ -145,9 +151,9 @@ export function Toaster() {
   return (
     <ToastProvider>
       {toasts.map((t) => (
-        <Toast key={toasts.indexOf(t)} {...t}>
+        <Toast key={toasts.indexOf(t)} variant={t.variant}>
           <div className="flex flex-col gap-1">
-            {t.title && <ToastTitle>{t.title}</ToastTitle>}
+            <ToastTitle>{t.title}</ToastTitle>
             {t.description && <ToastDescription>{t.description}</ToastDescription>}
           </div>
           <ToastClose />

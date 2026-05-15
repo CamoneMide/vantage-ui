@@ -16,10 +16,16 @@ interface PopupStore {
 const chromeStorage = {
   getItem: async (name: string) => {
     const result = await chrome.storage.local.get(name);
-    return result[name] ?? null;
+    const raw = result[name];
+    if (raw === undefined || raw === null) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return raw;
+    }
   },
-  setItem: async (name: string, value: string) => {
-    await chrome.storage.local.set({ [name]: value });
+  setItem: async (name: string, value: unknown) => {
+    await chrome.storage.local.set({ [name]: JSON.stringify(value) });
   },
   removeItem: async (name: string) => {
     await chrome.storage.local.remove(name);

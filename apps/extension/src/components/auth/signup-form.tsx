@@ -4,7 +4,8 @@ import { Loader2 } from 'lucide-react';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 
-import { SignupFormData, signupSchema } from '../../schemas/auth.schema';
+import type { SignupFormData } from '../../schemas/auth.schema';
+import { signupSchema } from '../../schemas/auth.schema';
 import { useAuthStore } from '../../store/authSlice';
 
 interface SignupFormProps {

@@ -4,7 +4,8 @@ import { Loader2 } from 'lucide-react';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 
-import { LoginFormData, loginSchema } from '../../schemas/auth.schema';
+import type { LoginFormData } from '../../schemas/auth.schema';
+import { loginSchema } from '../../schemas/auth.schema';
 import { useAuthStore } from '../../store/authSlice';
 
 interface LoginFormProps {

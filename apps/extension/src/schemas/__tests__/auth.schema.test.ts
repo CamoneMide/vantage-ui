@@ -18,7 +18,7 @@ describe('Auth Schemas', () => {
         password: 'password123',
       });
       expect(result.success).toBe(false);
-      if (!result.success) {
+      if (result.success === false) {
         expect(result.error.issues[0].message).toBe('Invalid email address');
       }
     });
@@ -29,7 +29,7 @@ describe('Auth Schemas', () => {
         password: 'short',
       });
       expect(result.success).toBe(false);
-      if (!result.success) {
+      if (result.success === false) {
         expect(result.error.issues[0].message).toBe(
           'Password must be at least 8 characters',
         );
@@ -54,7 +54,7 @@ describe('Auth Schemas', () => {
         confirmPassword: 'differentPassword',
       });
       expect(result.success).toBe(false);
-      if (!result.success) {
+      if (result.success === false) {
         const issue = result.error.issues.find(
           (i) => i.path[0] === 'confirmPassword',
         );
