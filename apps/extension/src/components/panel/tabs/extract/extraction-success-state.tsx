@@ -13,12 +13,14 @@ interface ExtractionSuccessStateProps {
   jsonBlueprint: JsonBlueprint
   generatedCode: string | null
   sourceUrl: string | null
+  onOpenSandbox?: () => void
 }
 
 function ExtractionSuccessState({
   jsonBlueprint,
   generatedCode,
   sourceUrl,
+  onOpenSandbox = () => {},
 }: ExtractionSuccessStateProps) {
   const [showBlueprint, setShowBlueprint] = useState(false);
   const [showCode, setShowCode] = useState(false);
@@ -224,6 +226,7 @@ function ExtractionSuccessState({
       >
         <button
           type="button"
+          onClick={onOpenSandbox}
           style={{
             display: 'flex',
             alignItems: 'center',

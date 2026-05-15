@@ -38,6 +38,7 @@ interface ExtractionState {
   generatedCode: string | null
   sourceUrl: string | null
   error: { type: ExtractionErrorType; message: string } | null
+  sandboxView: boolean
 }
 
 const initialState: ExtractionState = {
@@ -48,6 +49,7 @@ const initialState: ExtractionState = {
   generatedCode: null,
   sourceUrl: null,
   error: null,
+  sandboxView: false,
 };
 
 interface ExtractionActions {
@@ -56,6 +58,7 @@ interface ExtractionActions {
   setStep: (step: ExtractionStep) => void
   setSuccess: (blueprint: JsonBlueprint, code: string) => void
   setError: (type: ExtractionErrorType, message: string) => void
+  setSandboxView: (view: boolean) => void
   reset: () => void
 }
 
@@ -90,6 +93,8 @@ export const useExtractionStore = create<ExtractionStore>((set) => ({
     currentStep: null,
     error: { type, message },
   }),
+
+  setSandboxView: (view) => set({ sandboxView: view }),
 
   reset: () => set(initialState),
 }));

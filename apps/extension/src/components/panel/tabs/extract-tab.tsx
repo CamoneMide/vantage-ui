@@ -12,6 +12,7 @@ import { ExtractionIdleState } from './extract/extraction-idle-state';
 import { ExtractionProgressState } from './extract/extraction-progress-state';
 import { ExtractionSelectedState } from './extract/extraction-selected-state';
 import { ExtractionSuccessState } from './extract/extraction-success-state';
+import { SandpackContainer } from './extract/sandpack-container';
 
 function ExtractTab() {
   const status = useExtractionStore((s) => s.status);
@@ -21,7 +22,9 @@ function ExtractTab() {
   const generatedCode = useExtractionStore((s) => s.generatedCode);
   const sourceUrl = useExtractionStore((s) => s.sourceUrl);
   const error = useExtractionStore((s) => s.error);
+  const sandboxView = useExtractionStore((s) => s.sandboxView);
   const setSelectedElement = useExtractionStore((s) => s.setSelectedElement);
+  const setSandboxView = useExtractionStore((s) => s.setSandboxView);
   const reset = useExtractionStore((s) => s.reset);
   const creditBalance = usePopupStore((s) => s.creditBalance);
 
@@ -54,6 +57,48 @@ function ExtractTab() {
     runMockExtraction();
   }, []);
 
+  const handleOpenSandbox = useCallback(() => {
+    setSandboxView(true);
+  }, [setSandboxView]);
+
+  const handleBackToResults = useCallback(() => {
+    setSandboxView(false);
+  }, [setSandboxView]);
+
+  if (status === 'success' && sandboxView && generatedCode) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+        }}
+      >
+        <button
+          type="button"
+          onClick={handleBackToResults}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '8px 16px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: '13px',
+            fontWeight: 500,
+            color: 'rgba(10,10,10,0.6)',
+            alignSelf: 'flex-start',
+          }}
+        >
+          ← Back to Results
+        </button>
+        <SandpackContainer code={generatedCode} sourceUrl={sourceUrl} />
+      </div>
+    );
+  }
+
   if (status === 'idle') {
     return <ExtractionIdleState />;
   }
@@ -79,6 +124,7 @@ function ExtractTab() {
         jsonBlueprint={jsonBlueprint}
         generatedCode={generatedCode}
         sourceUrl={sourceUrl}
+        onOpenSandbox={handleOpenSandbox}
       />
     );
   }

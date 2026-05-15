@@ -10,6 +10,7 @@
     "package": "plasmo package"
   },
   "dependencies": {
+    "@codesandbox/sandpack-react": "^2.20.0",
     "@hookform/resolvers": "^3.10.0",
     "@vantage-ui/ui": "workspace:*",
     "lucide-react": "^0.344.0",
