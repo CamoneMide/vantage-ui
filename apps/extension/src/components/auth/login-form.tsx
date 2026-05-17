@@ -6,14 +6,16 @@ import { useForm } from 'react-hook-form';
 
 import type { LoginFormData } from '../../schemas/auth.schema';
 import { loginSchema } from '../../schemas/auth.schema';
-import { useAuthStore } from '../../store/authSlice';
+import { usePopupStore } from '../../store/popup-store';
 
 interface LoginFormProps {
   onSwitchToSignup: () => void
 }
 
 export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
-  const { mockLogin, authState, error } = useAuthStore();
+  const mockLogin = usePopupStore((s) => s.mockLogin);
+  const authState = usePopupStore((s) => s.authState);
+  const error = usePopupStore((s) => s.error);
   const isLoading = authState === 'loading';
 
   const {

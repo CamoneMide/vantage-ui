@@ -1,20 +1,133 @@
-import { Palette } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
+import { useCallback, useRef } from 'react';
 
-import { PlaceholderCard } from './placeholder-card';
+/* eslint-disable-next-line import/extensions */
+import { useDesignSystemStore } from '~store/designSystemSlice';
 
-/**
- * DesignTab placeholder screen for the side panel.
- * Surfaces the design system scanner feature (implemented in Phase 12).
- *
- * @returns {JSX.Element} The Design tab placeholder card.
- */
+import { ColorPaletteGrid } from './design/color-palette-grid';
+import { DesignMdViewer } from './design/design-md-viewer';
+import { DesignTabIdleState } from './design/design-tab-idle-state';
+import { DesignTabScanningState } from './design/design-tab-scanning-state';
+import { DownloadButtons } from './design/download-buttons';
+import { SpacingSystem } from './design/spacing-system';
+import { TypographyScaleTable } from './design/typography-scale-table';
+
 function DesignTab() {
+  const scanStatus = useDesignSystemStore((s) => s.scanStatus);
+  const colorPalette = useDesignSystemStore((s) => s.colorPalette);
+  const typographyScale = useDesignSystemStore((s) => s.typographyScale);
+  const spacingSystem = useDesignSystemStore((s) => s.spacingSystem);
+  const designMd = useDesignSystemStore((s) => s.designMd);
+  const tailwindConfig = useDesignSystemStore((s) => s.tailwindConfig);
+  const startScan = useDesignSystemStore((s) => s.startScan);
+  const setScanResults = useDesignSystemStore((s) => s.setScanResults);
+  const resetScan = useDesignSystemStore((s) => s.resetScan);
+
+  const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleStartScan = useCallback(() => {
+    startScan();
+    scanTimerRef.current = setTimeout(() => {
+      setScanResults();
+    }, 2500);
+  }, [startScan, setScanResults]);
+
+  const handleReScan = useCallback(() => {
+    resetScan();
+    // small delay to let the idle state mount, then start
+    setTimeout(() => {
+      handleStartScan();
+    }, 50);
+  }, [resetScan, handleStartScan]);
+
+  if (scanStatus === 'idle') {
+    return <DesignTabIdleState onStartScan={handleStartScan} />;
+  }
+
+  if (scanStatus === 'scanning') {
+    return <DesignTabScanningState />;
+  }
+
   return (
-    <PlaceholderCard
-      Icon={Palette}
-      heading="Design System Scanner"
-      description="Scan any website's design tokens."
-    />
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        animation: 'fadeInUp 300ms ease-out forwards',
+      }}
+    >
+      {/* Results header with Re-scan button */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <h2
+            style={{
+              fontFamily: 'Outfit, sans-serif',
+              fontWeight: 600,
+              fontSize: '16px',
+              color: '#0A0A0A',
+              margin: 0,
+            }}
+          >
+            Design System Scanner
+          </h2>
+          <p
+            style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '13px',
+              color: 'rgba(10,10,10,0.6)',
+              margin: 0,
+            }}
+          >
+            Scanned design tokens from the current tab.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleReScan}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '8px 12px',
+            border: 'none',
+            borderRadius: '6px',
+            background: 'transparent',
+            cursor: 'pointer',
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: '13px',
+            fontWeight: 500,
+            color: '#053B84',
+            whiteSpace: 'nowrap',
+            transition: 'background 150ms ease-out',
+          }}
+        >
+          <RotateCcw size={14} strokeWidth={1.5} />
+          Re-scan
+        </button>
+      </div>
+
+      {/* Color Palette */}
+      <ColorPaletteGrid colors={colorPalette} />
+
+      {/* Typography */}
+      <TypographyScaleTable rows={typographyScale} />
+
+      {/* Spacing */}
+      <SpacingSystem spacing={spacingSystem} />
+
+      {/* Design Docs */}
+      <DesignMdViewer markdown={designMd} />
+
+      {/* Download Buttons */}
+      <DownloadButtons designMd={designMd} tailwindConfig={tailwindConfig} />
+    </div>
   );
 }
 

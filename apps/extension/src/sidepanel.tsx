@@ -1,7 +1,7 @@
 import '@vantage-ui/ui/src/globals.css';
 
 import { Toaster } from '@vantage-ui/ui';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { AuthGate } from './components/panel/auth-gate';
 import { PanelContent } from './components/panel/panel-content';
@@ -37,15 +37,38 @@ function SidePanelShell() {
  * SidePanelInner reads auth state and conditionally renders either the
  * full authenticated shell or the unauthenticated AuthGate.
  * Waits for persist hydration to avoid flashing the wrong content.
+ * Listens for chrome.storage.onChanged to sync auth across contexts.
  */
 function SidePanelInner() {
   const [hydrated, setHydrated] = useState(usePopupStore.persist.hasHydrated());
   const authState = usePopupStore((s) => s.authState);
 
+  const rehydrate = useCallback(() => {
+    usePopupStore.persist.rehydrate();
+  }, []);
+
   useEffect(() => {
     const unsub = usePopupStore.persist.onFinishHydration(() => setHydrated(true));
     return () => unsub();
   }, []);
+
+  // Cross-context auth sync: when another extension context (e.g. popup)
+  // modifies auth state in chrome.storage.local, re-hydrate immediately.
+  useEffect(() => {
+    function handleStorageChange(
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string,
+    ) {
+      if (areaName === 'local' && changes['vantageui-auth']) {
+        rehydrate();
+      }
+    }
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
+  }, [rehydrate]);
 
   return (
     <div

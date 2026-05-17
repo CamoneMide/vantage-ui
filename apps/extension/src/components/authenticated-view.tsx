@@ -6,9 +6,10 @@ import { LowCreditWarning } from './low-credit-warning';
 function AuthenticatedView() {
   const creditBalance = usePopupStore((s) => s.creditBalance);
   const userEmail = usePopupStore((s) => s.userEmail);
-  const toggleAuth = usePopupStore((s) => s.toggleAuth);
+  const inspectorActive = usePopupStore((s) => s.inspectorActive);
+  const mockLogout = usePopupStore((s) => s.mockLogout);
 
-  const handleActivateInspector = async () => {
+  const handleToggleInspector = async () => {
     try {
       const tabs = await chrome.tabs.query({
         active: true,
@@ -81,11 +82,11 @@ function AuthenticatedView() {
 
       <button
         type="button"
-        onClick={handleActivateInspector}
+        onClick={handleToggleInspector}
         style={{
           width: '100%',
           padding: '12px 16px',
-          backgroundColor: '#053B84',
+          backgroundColor: inspectorActive ? '#DC2626' : '#053B84',
           color: '#FFFFFF',
           border: 'none',
           borderRadius: '8px',
@@ -93,12 +94,15 @@ function AuthenticatedView() {
           fontSize: '15px',
           fontWeight: 500,
           cursor: 'pointer',
-          boxShadow: '0px 2px 4px rgba(5,59,132,0.20)',
+          boxShadow: inspectorActive
+            ? '0px 2px 4px rgba(220,38,38,0.20)'
+            : '0px 2px 4px rgba(5,59,132,0.20)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: '8px',
           marginBottom: '12px',
+          transition: 'background-color 150ms ease-out',
         }}
       >
         <svg
@@ -113,7 +117,7 @@ function AuthenticatedView() {
         >
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
         </svg>
-        Activate Inspector
+        {inspectorActive ? 'Deactivate Inspector' : 'Activate Inspector'}
       </button>
 
       <button
@@ -155,7 +159,7 @@ function AuthenticatedView() {
 
       <button
         type="button"
-        onClick={toggleAuth}
+        onClick={mockLogout}
         style={{
           alignSelf: 'flex-end',
           background: 'none',

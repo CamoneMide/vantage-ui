@@ -7,6 +7,7 @@ import { useExtractionStore } from '~store/extraction-store';
 /* eslint-disable-next-line import/extensions */
 import { usePopupStore } from '~store/popup-store';
 
+import { PromptGeneratorPanel } from '../../prompt/prompt-generator-panel';
 import { ExtractionErrorState } from './extract/extraction-error-state';
 import { ExtractionIdleState } from './extract/extraction-idle-state';
 import { ExtractionProgressState } from './extract/extraction-progress-state';
@@ -23,8 +24,10 @@ function ExtractTab() {
   const sourceUrl = useExtractionStore((s) => s.sourceUrl);
   const error = useExtractionStore((s) => s.error);
   const sandboxView = useExtractionStore((s) => s.sandboxView);
+  const promptView = useExtractionStore((s) => s.promptView);
   const setSelectedElement = useExtractionStore((s) => s.setSelectedElement);
   const setSandboxView = useExtractionStore((s) => s.setSandboxView);
+  const setPromptView = useExtractionStore((s) => s.setPromptView);
   const reset = useExtractionStore((s) => s.reset);
   const creditBalance = usePopupStore((s) => s.creditBalance);
 
@@ -61,11 +64,85 @@ function ExtractTab() {
     setSandboxView(true);
   }, [setSandboxView]);
 
+  const handleGeneratePrompt = useCallback(() => {
+    setPromptView(true);
+  }, [setPromptView]);
+
   const handleBackToResults = useCallback(() => {
     setSandboxView(false);
-  }, [setSandboxView]);
+    setPromptView(false);
+  }, [setSandboxView, setPromptView]);
 
   if (status === 'success' && sandboxView && generatedCode) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+        }}
+      >
+        <button
+          type="button"
+          onClick={handleBackToResults}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '8px 16px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: '13px',
+            fontWeight: 500,
+            color: 'rgba(10,10,10,0.6)',
+            alignSelf: 'flex-start',
+          }}
+        >
+          ← Back to Results
+        </button>
+        <SandpackContainer code={generatedCode} sourceUrl={sourceUrl} />
+      </div>
+    );
+  }
+
+  if (status === 'success' && promptView) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          padding: '16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={handleBackToResults}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '0 0 12px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: '13px',
+            fontWeight: 500,
+            color: 'rgba(10,10,10,0.6)',
+            alignSelf: 'flex-start',
+          }}
+        >
+          ← Back to Results
+        </button>
+        <PromptGeneratorPanel />
+      </div>
+    );
+  }
+
+  if (status === 'success' && jsonBlueprint) {
     return (
       <div
         style={{
@@ -125,6 +202,7 @@ function ExtractTab() {
         generatedCode={generatedCode}
         sourceUrl={sourceUrl}
         onOpenSandbox={handleOpenSandbox}
+        onGeneratePrompt={handleGeneratePrompt}
       />
     );
   }

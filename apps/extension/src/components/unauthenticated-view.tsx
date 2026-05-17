@@ -1,14 +1,11 @@
 import { usePopupStore } from '../store/popup-store';
 
 function UnauthenticatedView() {
-  const setAuthState = usePopupStore((s) => s.setAuthState);
-  const setUserEmail = usePopupStore((s) => s.setUserEmail);
-  const setCreditBalance = usePopupStore((s) => s.setCreditBalance);
+  const mockLogin = usePopupStore((s) => s.mockLogin);
+  const mockSignup = usePopupStore((s) => s.mockSignup);
 
-  const handleSignIn = () => {
-    setAuthState('authenticated');
-    setUserEmail('user@example.com');
-    setCreditBalance(10);
+  const handleSignIn = async () => {
+    await mockLogin('user@example.com');
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.windowId) {
         chrome.sidePanel.open({ windowId: tabs[0].windowId });
@@ -16,10 +13,8 @@ function UnauthenticatedView() {
     });
   };
 
-  const handleCreateAccount = () => {
-    setAuthState('authenticated');
-    setUserEmail('user@example.com');
-    setCreditBalance(5);
+  const handleCreateAccount = async () => {
+    await mockSignup('user@example.com');
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.windowId) {
         chrome.sidePanel.open({ windowId: tabs[0].windowId });

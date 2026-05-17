@@ -14,6 +14,7 @@ interface ExtractionSuccessStateProps {
   generatedCode: string | null
   sourceUrl: string | null
   onOpenSandbox?: () => void
+  onGeneratePrompt?: () => void
 }
 
 function ExtractionSuccessState({
@@ -21,6 +22,7 @@ function ExtractionSuccessState({
   generatedCode,
   sourceUrl,
   onOpenSandbox = () => {},
+  onGeneratePrompt = () => {},
 }: ExtractionSuccessStateProps) {
   const [showBlueprint, setShowBlueprint] = useState(false);
   const [showCode, setShowCode] = useState(false);
@@ -249,6 +251,7 @@ function ExtractionSuccessState({
         </button>
         <button
           type="button"
+          onClick={onGeneratePrompt}
           style={{
             display: 'flex',
             alignItems: 'center',
