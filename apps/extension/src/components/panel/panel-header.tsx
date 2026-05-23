@@ -39,6 +39,7 @@ function PanelHeader() {
 
   return (
     <div
+      id="panel-header"
       style={{
         display: 'flex',
         alignItems: 'center',

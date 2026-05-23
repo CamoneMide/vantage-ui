@@ -3,12 +3,17 @@ import '@vantage-ui/ui/src/globals.css';
 import { Toaster } from '@vantage-ui/ui';
 import { useCallback, useEffect, useState } from 'react';
 
+import { LowCreditWarning } from './components/low-credit-warning';
+import { OnboardingOverlay } from './components/onboarding/OnboardingOverlay';
 import { AuthGate } from './components/panel/auth-gate';
 import { PanelContent } from './components/panel/panel-content';
 import { PanelHeader } from './components/panel/panel-header';
 import { PanelNav } from './components/panel/panel-nav';
+import { useCreditsStore } from './store/creditsSlice';
+import { useOnboardingStore } from './store/onboardingSlice';
 import { usePopupStore } from './store/popup-store';
 import { StoreProvider } from './store/store-provider';
+import { useUIStore } from './store/ui-slice';
 
 /**
  * SidePanelShell renders the authenticated layout:
@@ -16,20 +21,32 @@ import { StoreProvider } from './store/store-provider';
  * The `animate-fade-in` class triggers the CSS animation defined in globals.css.
  */
 function SidePanelShell() {
+  const balance = useCreditsStore((s) => s.balance);
+  const activeTab = useUIStore((s) => s.activeTab);
+  const hasCompletedOnboarding = useOnboardingStore(
+    (s) => s.hasCompletedOnboarding,
+  );
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        overflow: 'hidden',
-        animation: 'fadeIn 120ms ease-out forwards',
-      }}
-    >
-      <PanelHeader />
-      <PanelNav />
-      <PanelContent />
-    </div>
+    <>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100vh',
+          overflow: 'hidden',
+          animation: 'fadeIn 120ms ease-out forwards',
+        }}
+      >
+        <PanelHeader />
+        {activeTab !== 'credits' && (
+          <LowCreditWarning balance={balance} variant="compact" />
+        )}
+        <PanelNav />
+        <PanelContent />
+      </div>
+      {!hasCompletedOnboarding && <OnboardingOverlay />}
+    </>
   );
 }
 

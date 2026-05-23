@@ -21,22 +21,36 @@ interface PopupStore {
   setInspectorActive: (active: boolean) => void
 }
 
+const isChromeStorageAvailable = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+
 const chromeStorage = {
   getItem: async (name: string) => {
-    const result = await chrome.storage.local.get(name);
-    const raw = result[name];
-    if (raw === undefined || raw === null) return null;
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return raw;
+    if (isChromeStorageAvailable) {
+      const result = await chrome.storage.local.get(name);
+      const raw = result[name];
+      if (raw === undefined || raw === null) return null;
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return raw;
+      }
     }
+    const val = localStorage.getItem(name);
+    return val ? JSON.parse(val) : null;
   },
   setItem: async (name: string, value: unknown) => {
-    await chrome.storage.local.set({ [name]: JSON.stringify(value) });
+    if (isChromeStorageAvailable) {
+      await chrome.storage.local.set({ [name]: JSON.stringify(value) });
+      return;
+    }
+    localStorage.setItem(name, JSON.stringify(value));
   },
   removeItem: async (name: string) => {
-    await chrome.storage.local.remove(name);
+    if (isChromeStorageAvailable) {
+      await chrome.storage.local.remove(name);
+      return;
+    }
+    localStorage.removeItem(name);
   },
 };
 

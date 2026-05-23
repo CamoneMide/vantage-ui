@@ -2,6 +2,8 @@ import { create } from 'zustand';
 
 import type { SelectedElementData } from '~schemas/inspector.schema';
 
+import { useCreditsStore } from './creditsSlice';
+
 export type ExtractionStatus =
   | 'idle'
   | 'element-selected'
@@ -76,11 +78,19 @@ export const useExtractionStore = create<ExtractionStore>((set) => ({
     error: null,
   }),
 
-  startExtraction: (sourceUrl) => set({
-    status: 'extracting',
-    currentStep: 'capturing',
-    sourceUrl: sourceUrl ?? null,
-  }),
+  startExtraction: (sourceUrl) => {
+    const { selectedElement } = useExtractionStore.getState();
+    const tagName = selectedElement?.tagName
+      ? `<${selectedElement.tagName.toLowerCase()}>`
+      : 'Component';
+    useCreditsStore.getState().deductCredit(`${tagName} Extraction`);
+
+    set({
+      status: 'extracting',
+      currentStep: 'capturing',
+      sourceUrl: sourceUrl ?? null,
+    });
+  },
 
   setStep: (step) => set({ currentStep: step }),
 

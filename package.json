@@ -10,6 +10,8 @@
     "test:ui": "vitest --ui",
     "dev:extension": "pnpm --filter extension dev",
     "build:extension": "pnpm --filter extension build",
+    "dev:landing": "pnpm --filter landing dev",
+    "build:landing": "pnpm --filter landing build",
     "prepare": "husky"
   },
   "devDependencies": {

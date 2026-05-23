@@ -1,32 +1,32 @@
 # VantageUI — Progress History
 
 > Auto-generated progress tracker. **Every task MUST update this file** upon completion.
-> Last updated: 2026-05-17 (Phase 12 completed, cross-context auth sync fix)
+> Last updated: 2026-05-21 (Phase 15 completed, landing page)
 
 ---
 
 ## Overall Status
 
-| Phase | Description                      | Status         |
-| ----- | -------------------------------- | -------------- |
-| 1     | Project Foundation               | ✅ Complete    |
-| 2     | Plasmo Extension Setup           | ✅ Complete    |
-| 3     | Design System Package            | ✅ Complete    |
-| 4     | Popup UI                         | ✅ Complete    |
-| 5     | Side Panel Shell & Navigation    | ✅ Complete    |
-| 6     | Auth UI Flows                    | ✅ Complete    |
-| 7     | Inspector Content Script Overlay | ✅ Complete    |
-| 8     | Extraction Flow UI               | ✅ Complete    |
-| 9     | Sandpack Sandbox Integration     | ✅ Complete    |
-| 10    | Prompt Generator UI              | ✅ Complete    |
-| 11    | Design System Viewer             | ✅ Complete    |
-| 12    | Extraction History               | ✅ Complete    |
-| 13    | Credits & Billing UI             | ❌ Not Started |
-| 14    | Onboarding Tooltip Sequence      | ❌ Not Started |
-| 15    | Landing Page (Next.js)           | ❌ Not Started |
+| Phase | Description                      | Status      |
+| ----- | -------------------------------- | ----------- |
+| 1     | Project Foundation               | ✅ Complete |
+| 2     | Plasmo Extension Setup           | ✅ Complete |
+| 3     | Design System Package            | ✅ Complete |
+| 4     | Popup UI                         | ✅ Complete |
+| 5     | Side Panel Shell & Navigation    | ✅ Complete |
+| 6     | Auth UI Flows                    | ✅ Complete |
+| 7     | Inspector Content Script Overlay | ✅ Complete |
+| 8     | Extraction Flow UI               | ✅ Complete |
+| 9     | Sandpack Sandbox Integration     | ✅ Complete |
+| 10    | Prompt Generator UI              | ✅ Complete |
+| 11    | Design System Viewer             | ✅ Complete |
+| 12    | Extraction History               | ✅ Complete |
+| 13    | Credits & Billing UI             | ✅ Complete |
+| 14    | Onboarding Tooltip Sequence      | ✅ Complete |
+| 15    | Landing Page (Next.js)           | ✅ Complete |
 
-- **Completed:** 12 / 15 phases
-- **Remaining:** 4 phases (13–15)
+- **Completed:** 15 / 15 phases
+- **Remaining:** 0 phases
 
 ---
 
@@ -208,49 +208,49 @@
 
 ---
 
-## Phase 13 — Credits & Billing UI ❌
+## Phase 13 — Credits & Billing UI ✅
 
-| #   | Task                                    | Status | Notes                                   |
-| --- | --------------------------------------- | ------ | --------------------------------------- |
-| 1   | Create mock credits fixtures            | ❌     | `src/mocks/credits.mock.ts` not created |
-| 2   | Create / finalize Zustand credits slice | ❌     | No `creditsSlice` in store              |
-| 3   | Build `CreditBalanceCard` component     | ❌     | Not created                             |
-| 4   | Build low-credit warning banner         | ❌     | Not created                             |
-| 5   | Build `CreditPackSelector` component    | ❌     | Not created                             |
-| 6   | Build mocked Stripe purchase flow       | ❌     | Not created                             |
-| 7   | Build `TransactionHistoryTable`         | ❌     | Not created                             |
-| 8   | Assemble `CreditsTab` with wiring       | ❌     | Placeholder still in `credits-tab.tsx`  |
-
----
-
-## Phase 14 — Onboarding Tooltip Sequence ❌
-
-| #   | Task                                 | Status | Notes                              |
-| --- | ------------------------------------ | ------ | ---------------------------------- |
-| 1   | Create onboarding state + storage    | ❌     | `onboardingSlice` not created      |
-| 2   | Define onboarding step configuration | ❌     | `onboarding.config.ts` not created |
-| 3   | Build `OnboardingBackdrop` component | ❌     | Not created                        |
-| 4   | Build `OnboardingTooltip` component  | ❌     | Not created                        |
-| 5   | Implement smart tooltip positioning  | ❌     | Not created                        |
-| 6   | Build `OnboardingOverlay` + mount    | ❌     | Not created                        |
+| #   | Task                                    | Status | Notes                                               |
+| --- | --------------------------------------- | ------ | --------------------------------------------------- |
+| 1   | Create mock credits fixtures            | ✅     | `src/mocks/credits.mock.ts` — transactions + types  |
+| 2   | Create / finalize Zustand credits slice | ✅     | `store/creditsSlice.ts` — persist to chrome.storage |
+| 3   | Build `CreditBalanceCard` component     | ✅     | Count-up animation + progress bar                   |
+| 4   | Build low-credit warning banner         | ✅     | `low-credit-warning.tsx` — full + compact variants  |
+| 5   | Build `CreditPackSelector` component    | ✅     | 3 pack cards with mocked Stripe flow + toast        |
+| 6   | Build mocked Stripe purchase flow       | ✅     | Built into `CreditPackSelector` — 2s delay + toast  |
+| 7   | Build `TransactionHistoryTable`         | ✅     | Date/Type/Description/Amount — colored badges       |
+| 8   | Assemble `CreditsTab` with wiring       | ✅     | Warning → Balance → Packs → History assembled       |
 
 ---
 
-## Phase 15 — Landing Page (Next.js) ❌
+## Phase 14 — Onboarding Tooltip Sequence ✅
 
-| #   | Task                                   | Status | Notes                                                   |
-| --- | -------------------------------------- | ------ | ------------------------------------------------------- |
-| 1   | Scaffold `apps/landing` as Next.js app | ⚠️     | `package.json` and `tsconfig.json` exist, no `src/` yet |
-| 2   | Build page metadata and SEO            | ❌     | `layout.tsx` not created                                |
-| 3   | Build `Navbar` component               | ❌     | Not created                                             |
-| 4   | Build `HeroSection` component          | ❌     | Not created                                             |
-| 5   | Implement waitlist form logic          | ❌     | Not created                                             |
-| 6   | Build `HowItWorksSection`              | ❌     | Not created                                             |
-| 7   | Build `FeaturesSection`                | ❌     | Not created                                             |
-| 8   | Build `PricingSection`                 | ❌     | Not created                                             |
-| 9   | Build `SocialProofSection`             | ❌     | Not created                                             |
-| 10  | Build `Footer` component               | ❌     | Not created                                             |
-| 11  | Validate responsiveness + Lighthouse   | ❌     | Not done                                                |
+| #   | Task                                 | Status | Notes                                                  |
+| --- | ------------------------------------ | ------ | ------------------------------------------------------ |
+| 1   | Create onboarding state + storage    | ✅     | `store/onboardingSlice.ts` — persist to chrome.storage |
+| 2   | Define onboarding step configuration | ✅     | `config/onboarding.config.ts` — 5 typed steps          |
+| 3   | Build `OnboardingBackdrop` component | ✅     | Spotlight cutout via CSS clip-path + pulse ring        |
+| 4   | Build `OnboardingTooltip` component  | ✅     | Card with step counter, progress dots, Skip/Next       |
+| 5   | Implement smart tooltip positioning  | ✅     | `useTooltipPosition` hook — flip on overflow           |
+| 6   | Build `OnboardingOverlay` + mount    | ✅     | Mounted in sidepanel, reset button in Settings         |
+
+---
+
+## Phase 15 — Landing Page (Next.js) ✅
+
+| #   | Task                                   | Status | Notes                                                                                                                    |
+| --- | -------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Scaffold `apps/landing` as Next.js app | ✅     | Next.js app with Tailwind, fonts, and shared config                                                                      |
+| 2   | Build page metadata and SEO            | ✅     | `layout.tsx` with fonts, metadata, OpenGraph                                                                             |
+| 3   | Build `Navbar` component               | ✅     | Sticky nav with blur, smooth-scroll links, mobile hamburger                                                              |
+| 4   | Build `HeroSection` component          | ✅     | 100vh hero with staggered animations, badge, waitlist form, video placeholder                                            |
+| 5   | Implement waitlist form logic          | ✅     | Zod validation, 1.5s mock submit, success state                                                                          |
+| 6   | Build `HowItWorksSection`              | ✅     | 3-step flow with scroll-triggered animation, connecting dashed line                                                      |
+| 7   | Build `FeaturesSection`                | ✅     | 6-card 3×2 grid with hover lift effect                                                                                   |
+| 8   | Build `PricingSection`                 | ✅     | 3 credit packs, "Popular" badge, CTA scrolls to waitlist                                                                 |
+| 9   | Build `SocialProofSection`             | ✅     | Waitlist count + tech logo row with grayscale-to-color hover                                                             |
+| 10  | Build `Footer` component               | ✅     | Logo, tagline, placeholder links, copyright                                                                              |
+| 11  | Validate responsiveness + Lighthouse   | ⚠️     | Build passes, responsive layout verified via code review.<br>Lighthouse audit needs manual browser run against dev build |
 
 ---
 
