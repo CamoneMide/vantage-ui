@@ -54,7 +54,8 @@ describe('CreditsStore & creditsSlice', () => {
     expect(state.transactions[0].description).toBe('Pro Bundle Purchase');
   });
 
-  it('initSignupCredits sets balance to 5 and prepends a "granted" transaction', () => {
+  it('initSignupCredits adds 5 to balance and prepends a "granted" transaction', () => {
+    useCreditsStore.setState({ balance: 0, transactions: [] });
     useCreditsStore.getState().initSignupCredits();
 
     const state = useCreditsStore.getState();
@@ -72,10 +73,6 @@ describe('CreditsStore & creditsSlice', () => {
     expect(usePopupStore.getState().creditBalance).toBe(42);
   });
 
-  it('synchronizes credits change from usePopupStore back to useCreditsStore dynamically', () => {
-    // Modify balance using usePopupStore (e.g. signup or login action)
-    usePopupStore.setState({ creditBalance: 88 });
-
-    expect(useCreditsStore.getState().balance).toBe(88);
-  });
+  // Reverse sync (popupStore -> creditsStore) was intentionally removed
+  // to prevent race conditions between cross-context chrome.storage writes.
 });

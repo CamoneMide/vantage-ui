@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Input } from '@vantage-ui/ui';
+import { Button, Input, toast } from '@vantage-ui/ui';
 import { Loader2 } from 'lucide-react';
 import React from 'react';
 import { useForm } from 'react-hook-form';
@@ -31,20 +31,12 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
   };
 
   return (
-    <div
-      className="bg-white rounded-xl p-8"
-      style={{
-        boxShadow: '0px 4px 12px rgba(0,0,0,0.05)',
-      }}
-    >
+    <div className="bg-white rounded-xl p-8 shadow-level-2">
       <div className="mb-6">
         <h2 className="text-2xl font-semibold font-display text-gray-900 mb-1">
           Welcome back
         </h2>
-        <p
-          className="text-sm font-body text-gray-500"
-          style={{ color: 'rgba(10,10,10,0.6)' }}
-        >
+        <p className="text-sm font-body text-gray-500">
           Sign in to your VantageUI account.
         </p>
       </div>
@@ -81,6 +73,7 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
             </label>
             <button
               type="button"
+              onClick={() => toast({ title: 'Password reset coming soon.' })}
               className="text-xs text-[#2B5CE6] hover:underline font-body"
             >
               Forgot password?

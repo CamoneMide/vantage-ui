@@ -1,16 +1,27 @@
 import type { SelectedElementData } from '~schemas/inspector.schema';
 
-import { ARIA_ATTRIBUTES, VANTAGEUI_ATTR } from './types';
+import { ARIA_ATTRIBUTES, DATA_ATTRIBUTES, VANTAGEUI_ATTR } from './types';
 
-export function getAriaAttributes(element: Element): Record<string, string> {
-  const attrs: Record<string, string> = {};
-  ARIA_ATTRIBUTES.forEach((attr) => {
+function collectAttributes(
+  element: Element,
+  attrs: readonly string[],
+): Record<string, string> {
+  const result: Record<string, string> = {};
+  attrs.forEach((attr) => {
     const value = element.getAttribute(attr);
     if (value !== null) {
-      attrs[attr] = value;
+      result[attr] = value;
     }
   });
-  return attrs;
+  return result;
+}
+
+export function getAriaAttributes(element: Element): Record<string, string> {
+  return collectAttributes(element, ARIA_ATTRIBUTES);
+}
+
+export function getDataAttributes(element: Element): Record<string, string> {
+  return collectAttributes(element, DATA_ATTRIBUTES);
 }
 
 export function getSelectedElementData(element: Element): SelectedElementData {
@@ -31,7 +42,10 @@ export function getSelectedElementData(element: Element): SelectedElementData {
       width: rect.width,
       height: rect.height,
     },
-    ariaAttributes: getAriaAttributes(element),
+    ariaAttributes: {
+      ...getAriaAttributes(element),
+      ...getDataAttributes(element),
+    },
     innerHTML,
   };
 }
@@ -42,5 +56,6 @@ export function isValidTarget(el: Element | null): el is Element {
   if (el.closest(`[${VANTAGEUI_ATTR}]`)) return false;
   if (el.id === 'vantageui-root') return false;
   if (el.tagName === 'HTML' || el.tagName === 'BODY') return false;
+  if (el.getRootNode() instanceof ShadowRoot) return false;
   return true;
 }

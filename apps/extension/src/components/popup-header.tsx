@@ -25,6 +25,7 @@ function VantageUiLogo() {
 
 function PopupHeader() {
   const creditBalance = usePopupStore((s) => s.creditBalance);
+  const authState = usePopupStore((s) => s.authState);
 
   return (
     <div
@@ -50,7 +51,7 @@ function PopupHeader() {
           VantageUI
         </span>
       </div>
-      <CreditBadge balance={creditBalance} size="sm" />
+      {authState === 'authenticated' && <CreditBadge balance={creditBalance} size="sm" />}
     </div>
   );
 }

@@ -19,10 +19,55 @@ interface UIActions {
 
 type UIStore = UIState & UIActions;
 
+const isChromeStorageAvailable = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+
+const chromeStorage = {
+  getItem: async (name: string) => {
+    if (isChromeStorageAvailable) {
+      const result = await chrome.storage.local.get(name);
+      const raw = result[name];
+      if (raw === undefined || raw === null) return null;
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return raw;
+      }
+    }
+    try {
+      const val = localStorage.getItem(name);
+      return val ? JSON.parse(val) : null;
+    } catch {
+      return null;
+    }
+  },
+  setItem: async (name: string, value: unknown) => {
+    if (isChromeStorageAvailable) {
+      await chrome.storage.local.set({ [name]: JSON.stringify(value) });
+      return;
+    }
+    try {
+      localStorage.setItem(name, JSON.stringify(value));
+    } catch {
+      // noop
+    }
+  },
+  removeItem: async (name: string) => {
+    if (isChromeStorageAvailable) {
+      await chrome.storage.local.remove(name);
+      return;
+    }
+    try {
+      localStorage.removeItem(name);
+    } catch {
+      // noop
+    }
+  },
+};
+
 /**
  * Zustand store for side panel UI state.
- * Uses `persist` middleware backed by `localStorage` during development,
- * which mirrors the chrome.storage.local pattern for tab persistence.
+ * Uses `persist` middleware backed by `chrome.storage.local` with
+ * `localStorage` fallback for dev environments.
  * This ensures the last active tab is restored when the panel re-opens.
  */
 export const useUIStore = create<UIStore>()(
@@ -33,21 +78,8 @@ export const useUIStore = create<UIStore>()(
       setActiveTab: (tab) => set({ activeTab: tab }),
     }),
     {
-      name: 'vantage-ui-panel-state',
-      // During dev we use localStorage. In production, this could be
-      // swapped for a chrome.storage.local adapter.
-      storage: {
-        getItem: (name) => {
-          const value = localStorage.getItem(name);
-          return value ? JSON.parse(value) : null;
-        },
-        setItem: (name, value) => {
-          localStorage.setItem(name, JSON.stringify(value));
-        },
-        removeItem: (name) => {
-          localStorage.removeItem(name);
-        },
-      },
+      name: 'vantageui-panel-state',
+      storage: chromeStorage,
     },
   ),
 );

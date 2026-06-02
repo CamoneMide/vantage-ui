@@ -57,7 +57,7 @@ export function OnboardingBackdrop({
         transition: 'clip-path 250ms ease',
       }}
     >
-      {targetRect && stepId === 1 && (
+      {targetRect && (
         <div
           style={{
             position: 'absolute',

@@ -1,4 +1,5 @@
 import { useUIStore } from '../../store/ui-slice';
+import { ErrorBoundary } from '../error-boundary';
 import { CreditsTab } from './tabs/credits-tab';
 import { DesignTab } from './tabs/design-tab';
 import { ExtractTab } from './tabs/extract-tab';
@@ -48,7 +49,9 @@ function PanelContent() {
           animation: 'fadeUp 150ms ease-out forwards',
         }}
       >
-        <ActiveComponent />
+        <ErrorBoundary key={activeTab}>
+          <ActiveComponent />
+        </ErrorBoundary>
       </div>
     </div>
   );

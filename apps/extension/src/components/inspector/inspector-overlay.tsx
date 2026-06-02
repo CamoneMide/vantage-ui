@@ -42,9 +42,19 @@ export function InspectorOverlay() {
       if (message.type === 'TOGGLE_INSPECTOR') {
         if (isActiveRef.current) {
           cleanup();
+          try {
+            chrome.runtime.sendMessage({ type: 'INSPECTOR_DEACTIVATED' });
+          } catch {
+            // ignore
+          }
         } else {
           setIsActive(true);
           isActiveRef.current = true;
+          try {
+            chrome.runtime.sendMessage({ type: 'INSPECTOR_ACTIVATED' });
+          } catch {
+            // ignore
+          }
         }
       }
     };
@@ -55,13 +65,19 @@ export function InspectorOverlay() {
     };
   }, [cleanup]);
 
+  const rafRef = useRef<number | null>(null);
+
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isSelectedRef.current) return;
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    if (isValidTarget(el)) {
-      setHoveredElement(el);
-      hoveredElementRef.current = el;
-    }
+    if (rafRef.current != null) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      if (isValidTarget(el)) {
+        setHoveredElement(el);
+        hoveredElementRef.current = el;
+      }
+    });
   }, []);
 
   const handleClick = useCallback((e: MouseEvent) => {
@@ -111,6 +127,18 @@ export function InspectorOverlay() {
       } else if (e.key === 'ArrowDown') {
         newElement = currentEl.firstElementChild;
         hint = 'Child';
+        if (newElement instanceof Element) {
+          e.preventDefault();
+        }
+      } else if (e.key === 'ArrowLeft') {
+        newElement = currentEl.previousElementSibling;
+        hint = 'Previous Sibling';
+        if (newElement instanceof Element) {
+          e.preventDefault();
+        }
+      } else if (e.key === 'ArrowRight') {
+        newElement = currentEl.nextElementSibling;
+        hint = 'Next Sibling';
         if (newElement instanceof Element) {
           e.preventDefault();
         }

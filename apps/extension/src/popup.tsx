@@ -7,10 +7,10 @@ import { DevAuthToggle } from './components/dev-auth-toggle';
 import { PopupHeader } from './components/popup-header';
 import { UnauthenticatedView } from './components/unauthenticated-view';
 import { usePopupStore } from './store/popup-store';
-import { StoreProvider } from './store/store-provider';
 
 function PopupContent() {
   const [hydrated, setHydrated] = useState(usePopupStore.persist.hasHydrated());
+  const [hydrationTimedOut, setHydrationTimedOut] = useState(false);
   const authState = usePopupStore((s) => s.authState);
 
   const rehydrate = useCallback(() => {
@@ -21,6 +21,17 @@ function PopupContent() {
     const unsub = usePopupStore.persist.onFinishHydration(() => setHydrated(true));
     return () => unsub();
   }, []);
+
+  // Hydration timeout fallback
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!hydrated) {
+        setHydrationTimedOut(true);
+        setHydrated(true);
+      }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [hydrated]);
 
   // Cross-context auth sync: when another extension context (e.g. side panel)
   // modifies auth state in chrome.storage.local, re-hydrate immediately.
@@ -54,7 +65,41 @@ function PopupContent() {
     >
       <PopupHeader />
       {hydrated && authState === 'authenticated' && <AuthenticatedView />}
-      {hydrated && authState !== 'authenticated' && <UnauthenticatedView />}
+      {hydrated && authState === 'loading' && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            style={{ animation: 'spin 0.8s linear infinite' }}
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="rgba(10,10,10,0.1)"
+              strokeWidth="3"
+            />
+            <path
+              d="M12 2a10 10 0 0 1 10 10"
+              stroke="#053B84"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+      )}
+      {hydrationTimedOut && authState !== 'authenticated' && <UnauthenticatedView />}
+      {!hydrationTimedOut && hydrated && authState !== 'authenticated' && authState !== 'loading' && <UnauthenticatedView />}
       <DevAuthToggle />
     </div>
   );
@@ -62,10 +107,8 @@ function PopupContent() {
 
 export default function Popup() {
   return (
-    <StoreProvider>
-      <div style={{ width: '320px', minHeight: '480px' }}>
-        <PopupContent />
-      </div>
-    </StoreProvider>
+    <div style={{ width: '320px', minHeight: '480px' }}>
+      <PopupContent />
+    </div>
   );
 }

@@ -28,22 +28,34 @@ const chromeStorage = {
         return raw;
       }
     }
-    const val = localStorage.getItem(name);
-    return val ? JSON.parse(val) : null;
+    try {
+      const val = localStorage.getItem(name);
+      return val ? JSON.parse(val) : null;
+    } catch {
+      return null;
+    }
   },
   setItem: async (name: string, value: unknown) => {
     if (isChromeStorageAvailable) {
       await chrome.storage.local.set({ [name]: JSON.stringify(value) });
       return;
     }
-    localStorage.setItem(name, JSON.stringify(value));
+    try {
+      localStorage.setItem(name, JSON.stringify(value));
+    } catch {
+      // noop
+    }
   },
   removeItem: async (name: string) => {
     if (isChromeStorageAvailable) {
       await chrome.storage.local.remove(name);
       return;
     }
-    localStorage.removeItem(name);
+    try {
+      localStorage.removeItem(name);
+    } catch {
+      // noop
+    }
   },
 };
 

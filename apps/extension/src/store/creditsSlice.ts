@@ -1,11 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-import {
-  mockCreditBalance,
-  mockTransactionHistory,
-  type CreditTransaction,
-} from '~mocks/credits.mock';
+import type { CreditTransaction } from '~mocks/credits.mock';
 
 import { usePopupStore } from './popup-store';
 
@@ -58,30 +54,42 @@ const chromeStorage = {
         return raw;
       }
     }
-    const val = localStorage.getItem(name);
-    return val ? JSON.parse(val) : null;
+    try {
+      const val = localStorage.getItem(name);
+      return val ? JSON.parse(val) : null;
+    } catch {
+      return null;
+    }
   },
   setItem: async (name: string, value: unknown) => {
     if (isChromeStorageAvailable) {
       await chrome.storage.local.set({ [name]: JSON.stringify(value) });
       return;
     }
-    localStorage.setItem(name, JSON.stringify(value));
+    try {
+      localStorage.setItem(name, JSON.stringify(value));
+    } catch {
+      // noop
+    }
   },
   removeItem: async (name: string) => {
     if (isChromeStorageAvailable) {
       await chrome.storage.local.remove(name);
       return;
     }
-    localStorage.removeItem(name);
+    try {
+      localStorage.removeItem(name);
+    } catch {
+      // noop
+    }
   },
 };
 
 export const useCreditsStore = create<CreditsStore>()(
   persist(
     (set) => ({
-      balance: mockCreditBalance,
-      transactions: mockTransactionHistory,
+      balance: 0,
+      transactions: [],
 
       setCreditBalance: (n) => {
         set({ balance: n });
@@ -133,7 +141,7 @@ export const useCreditsStore = create<CreditsStore>()(
 
       initSignupCredits: () => {
         set((state) => {
-          const newBalance = 5;
+          const newBalance = state.balance + 5;
           const newTransaction: CreditTransaction = {
             id: `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             type: 'granted',
@@ -159,10 +167,7 @@ export const useCreditsStore = create<CreditsStore>()(
   ),
 );
 
-// Subscribe to usePopupStore to keep balance in sync when auth states or signup bonus change
-usePopupStore.subscribe((popupState) => {
-  const currentCreditsState = useCreditsStore.getState();
-  if (currentCreditsState.balance !== popupState.creditBalance) {
-    useCreditsStore.setState({ balance: popupState.creditBalance });
-  }
-});
+// Sync creditsStore -> popupStore when credits change from other contexts (e.g. side panel)
+// The direction is one-way: creditsStore is the source of truth for balance.
+// popupStore is updated by every creditsStore action via usePopupStore.getState().setCreditBalance(n).
+// No reverse sync needed — popupStore's creditBalance is derived from creditsStore.

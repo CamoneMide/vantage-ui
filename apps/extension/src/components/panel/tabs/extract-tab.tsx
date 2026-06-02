@@ -1,7 +1,10 @@
-import { useCallback, useEffect } from 'react';
+import { toast } from '@vantage-ui/ui';
+import { useCallback, useEffect, useRef } from 'react';
 
 /* eslint-disable-next-line import/extensions */
 import { runMockExtraction } from '~lib/mock-extraction';
+/* eslint-disable-next-line import/extensions */
+import { selectedElementSchema } from '~schemas/inspector.schema';
 /* eslint-disable-next-line import/extensions */
 import { useExtractionStore } from '~store/extraction-store';
 /* eslint-disable-next-line import/extensions */
@@ -30,13 +33,15 @@ function ExtractTab() {
   const setPromptView = useExtractionStore((s) => s.setPromptView);
   const reset = useExtractionStore((s) => s.reset);
   const creditBalance = usePopupStore((s) => s.creditBalance);
+  const prevStatusRef = useRef(status);
 
   useEffect(() => {
     function handleMessage(msg: { type: string; payload?: unknown }) {
       if (msg.type === 'ELEMENT_SELECTED') {
-        setSelectedElement(
-          msg.payload as Parameters<typeof setSelectedElement>[0],
-        );
+        const result = selectedElementSchema.safeParse(msg.payload);
+        if (result.success) {
+          setSelectedElement(result.data);
+        }
       } else if (msg.type === 'INSPECTOR_DEACTIVATED') {
         reset();
       }
@@ -47,6 +52,21 @@ function ExtractTab() {
       chrome.runtime.onMessage.removeListener(handleMessage);
     };
   }, [setSelectedElement, reset]);
+
+  // Toast on status transitions
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    if (prev === 'extracting' && status === 'success') {
+      toast({ title: 'Extraction complete!', description: 'Open Sandpack to view the code.' });
+    }
+    if (prev === 'extracting' && status === 'error') {
+      toast({ title: 'Extraction failed', description: error?.message ?? 'Unknown error.' });
+    }
+    if (status === 'extracting') {
+      toast({ title: 'Extracting component...' });
+    }
+    prevStatusRef.current = status;
+  }, [status, error]);
 
   const handleExtract = useCallback(() => {
     runMockExtraction();
@@ -144,35 +164,13 @@ function ExtractTab() {
 
   if (status === 'success' && jsonBlueprint) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          flex: 1,
-        }}
-      >
-        <button
-          type="button"
-          onClick={handleBackToResults}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '8px 16px',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontFamily: 'DM Sans, sans-serif',
-            fontSize: '13px',
-            fontWeight: 500,
-            color: 'rgba(10,10,10,0.6)',
-            alignSelf: 'flex-start',
-          }}
-        >
-          ← Back to Results
-        </button>
-        <SandpackContainer code={generatedCode} sourceUrl={sourceUrl} />
-      </div>
+      <ExtractionSuccessState
+        jsonBlueprint={jsonBlueprint}
+        generatedCode={generatedCode}
+        sourceUrl={sourceUrl}
+        onOpenSandbox={handleOpenSandbox}
+        onGeneratePrompt={handleGeneratePrompt}
+      />
     );
   }
 
@@ -193,18 +191,6 @@ function ExtractTab() {
 
   if (status === 'extracting' && currentStep) {
     return <ExtractionProgressState currentStep={currentStep} />;
-  }
-
-  if (status === 'success' && jsonBlueprint) {
-    return (
-      <ExtractionSuccessState
-        jsonBlueprint={jsonBlueprint}
-        generatedCode={generatedCode}
-        sourceUrl={sourceUrl}
-        onOpenSandbox={handleOpenSandbox}
-        onGeneratePrompt={handleGeneratePrompt}
-      />
-    );
   }
 
   if (status === 'error' && error) {

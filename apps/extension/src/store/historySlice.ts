@@ -1,44 +1,85 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 import type { ExtractionHistoryItem } from '~mocks/history.mock';
-import { mockHistory } from '~mocks/history.mock';
+
+const MAX_HISTORY_ITEMS = 100;
+
+const isChromeStorageAvailable = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+
+const chromeStorage = {
+  getItem: async (name: string) => {
+    if (isChromeStorageAvailable) {
+      const result = await chrome.storage.local.get(name);
+      const raw = result[name];
+      if (raw === undefined || raw === null) return null;
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return raw;
+      }
+    }
+    try {
+      const val = localStorage.getItem(name);
+      return val ? JSON.parse(val) : null;
+    } catch {
+      return null;
+    }
+  },
+  setItem: async (name: string, value: unknown) => {
+    if (isChromeStorageAvailable) {
+      await chrome.storage.local.set({ [name]: JSON.stringify(value) });
+      return;
+    }
+    try {
+      localStorage.setItem(name, JSON.stringify(value));
+    } catch {
+      // noop
+    }
+  },
+  removeItem: async (name: string) => {
+    if (isChromeStorageAvailable) {
+      await chrome.storage.local.remove(name);
+      return;
+    }
+    try {
+      localStorage.removeItem(name);
+    } catch {
+      // noop
+    }
+  },
+};
 
 interface HistoryState {
   items: ExtractionHistoryItem[]
 }
 
 interface HistoryActions {
-  /**
-   * Adds a new extraction to the history, prepending it to the list.
-   * @param item - The extraction history item to add.
-   */
   addItem: (item: ExtractionHistoryItem) => void
-
-  /**
-   * Removes an extraction from history by its id.
-   * Uses immutable .filter() — does not mutate the original array.
-   * @param id - The id of the item to remove.
-   */
   removeItem: (id: string) => void
-
-  /**
-   * Clears all extraction history items.
-   */
   clearAll: () => void
 }
 
 type HistoryStore = HistoryState & HistoryActions;
 
-export const useHistoryStore = create<HistoryStore>((set) => ({
-  items: mockHistory,
+export const useHistoryStore = create<HistoryStore>()(
+  persist(
+    (set) => ({
+      items: [],
 
-  addItem: (item) => set((state) => ({
-    items: [item, ...state.items],
-  })),
+      addItem: (item) => set((state) => ({
+        items: [item, ...state.items].slice(0, MAX_HISTORY_ITEMS),
+      })),
 
-  removeItem: (id) => set((state) => ({
-    items: state.items.filter((item) => item.id !== id),
-  })),
+      removeItem: (id) => set((state) => ({
+        items: state.items.filter((item) => item.id !== id),
+      })),
 
-  clearAll: () => set({ items: [] }),
-}));
+      clearAll: () => set({ items: [] }),
+    }),
+    {
+      name: 'vantageui-history',
+      storage: chromeStorage,
+    },
+  ),
+);

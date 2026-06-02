@@ -1,4 +1,5 @@
 import { CreditBadge } from '@vantage-ui/ui';
+import { useEffect, useRef, useState } from 'react';
 
 import { usePopupStore } from '../store/popup-store';
 import { LowCreditWarning } from './low-credit-warning';
@@ -7,18 +8,62 @@ function AuthenticatedView() {
   const creditBalance = usePopupStore((s) => s.creditBalance);
   const userEmail = usePopupStore((s) => s.userEmail);
   const inspectorActive = usePopupStore((s) => s.inspectorActive);
+  const setInspectorActive = usePopupStore((s) => s.setInspectorActive);
+  const toggleInspector = usePopupStore((s) => s.toggleInspector);
   const mockLogout = usePopupStore((s) => s.mockLogout);
+  const [isToggling, setIsToggling] = useState(false);
+  const retryCountRef = useRef(0);
+
+  useEffect(() => {
+    function handleMessage(msg: { type: string }) {
+      if (msg.type === 'INSPECTOR_ACTIVATED') {
+        setInspectorActive(true);
+        setIsToggling(false);
+        retryCountRef.current = 0;
+      } else if (msg.type === 'INSPECTOR_DEACTIVATED') {
+        setInspectorActive(false);
+        setIsToggling(false);
+        retryCountRef.current = 0;
+      }
+    }
+    chrome.runtime.onMessage.addListener(handleMessage);
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage);
+    };
+  }, [setInspectorActive]);
+
+  const sendToggleMessage = async (tabId: number, retries = 3): Promise<boolean> => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        await chrome.tabs.sendMessage(tabId, { type: 'TOGGLE_INSPECTOR' });
+        return true;
+      } catch {
+        if (i < retries - 1) {
+          await new Promise((r) => setTimeout(r, 200));
+        }
+      }
+    }
+    return false;
+  };
 
   const handleToggleInspector = async () => {
+    setIsToggling(true);
+    toggleInspector();
     try {
       const tabs = await chrome.tabs.query({
         active: true,
         currentWindow: true,
       });
       if (tabs.length > 0 && tabs[0].id) {
-        await chrome.tabs.sendMessage(tabs[0].id, { type: 'TOGGLE_INSPECTOR' });
+        const sent = await sendToggleMessage(tabs[0].id);
+        if (!sent) {
+          setIsToggling(false);
+          // If content script not reachable, revert the optimistic toggle
+          toggleInspector();
+        }
       }
     } catch (error) {
+      setIsToggling(false);
       // eslint-disable-next-line no-console
       console.error('Error sending TOGGLE_INSPECTOR:', error);
     }
@@ -83,17 +128,18 @@ function AuthenticatedView() {
       <button
         type="button"
         onClick={handleToggleInspector}
+        disabled={isToggling}
         style={{
           width: '100%',
           padding: '12px 16px',
-          backgroundColor: inspectorActive ? '#DC2626' : '#053B84',
+          backgroundColor: isToggling ? '#6B7280' : inspectorActive ? '#DC2626' : '#053B84',
           color: '#FFFFFF',
           border: 'none',
           borderRadius: '8px',
           fontFamily: 'DM Sans, sans-serif',
           fontSize: '15px',
           fontWeight: 500,
-          cursor: 'pointer',
+          cursor: isToggling ? 'default' : 'pointer',
           boxShadow: inspectorActive
             ? '0px 2px 4px rgba(220,38,38,0.20)'
             : '0px 2px 4px rgba(5,59,132,0.20)',
@@ -105,19 +151,43 @@ function AuthenticatedView() {
           transition: 'background-color 150ms ease-out',
         }}
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-        </svg>
-        {inspectorActive ? 'Deactivate Inspector' : 'Activate Inspector'}
+        {isToggling ? (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            style={{ animation: 'spin 0.8s linear infinite' }}
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="rgba(255,255,255,0.3)"
+              strokeWidth="3"
+            />
+            <path
+              d="M12 2a10 10 0 0 1 10 10"
+              stroke="#FFFFFF"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          </svg>
+        ) : (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+        )}
+        {isToggling ? 'Connecting...' : inspectorActive ? 'Deactivate Inspector' : 'Activate Inspector'}
       </button>
 
       <button
@@ -159,7 +229,24 @@ function AuthenticatedView() {
 
       <button
         type="button"
-        onClick={mockLogout}
+        onClick={async () => {
+          if (inspectorActive) {
+            try {
+              const tabs = await chrome.tabs.query({
+                active: true,
+                currentWindow: true,
+              });
+              if (tabs.length > 0 && tabs[0].id) {
+                await chrome.tabs.sendMessage(tabs[0].id, {
+                  type: 'TOGGLE_INSPECTOR',
+                });
+              }
+            } catch {
+              // tab may not exist, ignore
+            }
+          }
+          mockLogout();
+        }}
         style={{
           alignSelf: 'flex-end',
           background: 'none',

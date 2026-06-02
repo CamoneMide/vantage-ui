@@ -1,7 +1,7 @@
-# 03 — Phased Execution Roadmap: VantageUI (Frontend)
+# 03 — Phased Execution Roadmap: VantageUI
 
-**Total Phases:** 15  
-**Strategy:** Frontend-first, mock-data-driven. Each phase is independently verifiable before proceeding.
+**Total Phases:** 21 (15 Frontend + 6 Backend)  
+**Strategy:** Frontend-first, mock-data-driven. Backend phases replace mocks with real Supabase, Stripe, and LLM integration.
 
 ---
 
@@ -23,6 +23,12 @@ Phase 1 (Foundation)
             │               └─► Phase 13 (Credits & Billing UI)
             └─► Phase 14 (Onboarding Sequence)
 Phase 15 (Landing Page) — independent of extension phases, can run in parallel after Phase 3
+Phase 16 (Backend Foundation) — Supabase setup, DB schema, RLS, shared types
+    └─► Phase 17 (Auth API) — Signup/login/logout routes, JWT middleware
+            ├─► Phase 18 (Credits & Stripe API) — Balance, transactions, Checkout, webhooks
+            │       └─► Phase 19 (Extraction & LLM API) — Extraction CRUD, LLM proxy, rate limiting
+            ├─► Phase 20 (Waitlist API & Landing Polish) — Waitlist endpoint, landing page real integration
+            └─► Phase 21 (Testing & Deployment) — Integration tests, security audit, Vercel deploy
 ```
 
 ---
@@ -46,6 +52,12 @@ Phase 15 (Landing Page) — independent of extension phases, can run in parallel
 | 13  | **Credits & Billing UI**        | Balance display, pack selector, transaction history, warnings | 5          |
 | 14  | **Onboarding Tooltip Sequence** | 5-step first-time overlay, progress, skip                     | 4, 5       |
 | 15  | **Landing Page**                | Full Next.js marketing page with waitlist                     | 3          |
+| 16  | **Backend Foundation**         | Supabase project, DB schema, RLS, signup trigger, shared types| 15         |
+| 17  | **Auth API**                   | Supabase Auth integration, JWT middleware, extension connect  | 16         |
+| 18  | **Credits & Stripe API**       | Balance/transactions endpoints, Stripe Checkout, webhooks    | 16, 17     |
+| 19  | **Extraction & LLM API**       | Extraction CRUD, LLM proxy (Claude/GPT-4o), rate limiting    | 16, 17, 18 |
+| 20  | **Waitlist API & Polish**      | Real waitlist endpoint, landing page finalization            | 16, 15     |
+| 21  | **Testing, Security, Deploy**  | Integration tests, RLS audit, Vercel deploy, CI/CD           | 16-20      |
 
 ---
 
@@ -246,3 +258,120 @@ Phase 15 (Landing Page) — independent of extension phases, can run in parallel
 - SEO: `<title>`, `<meta description>`, `og:image` (generated), structured data
 - Fully responsive (mobile → desktop)
 - **Milestone:** Landing page renders on `localhost:3000`; waitlist form validates and shows success state; all sections are responsive; Lighthouse score > 90.
+
+---
+
+## Backend Phases (16–21)
+
+### Phase 16 — Backend Foundation & Database Schema
+
+**Goal:** Set up Supabase project, create complete database schema with RLS policies, and install all backend dependencies in the landing app.
+
+- Create Supabase project and link to VantageUI
+- Define all database tables: `users`, `credits`, `credit_transactions`, `extractions`, `waitlist`
+- Create `handle_new_user()` trigger function for 5 free credits on signup
+- Enable RLS and create policies for all tables
+- Install `@supabase/supabase-js`, `@supabase/ssr`, `stripe`, `@anthropic-ai/sdk`, `openai`, `@upstash/ratelimit`, `@vercel/kv` in `apps/landing`
+- Create shared TypeScript types package for API request/response shapes
+- Create Supabase client utilities (server-side + browser)
+- Set up `apps/landing/src/app/api/` directory structure
+- Configure environment variables (all `.env.example` values)
+- **Milestone:** Supabase project is live; RLS policies prevent unauthorized access; DB trigger auto-inserts credits on new user creation; all packages install without errors.
+
+### Phase 17 — Authentication API & Extension Integration
+
+**Goal:** Build all auth API routes using Supabase Auth and replace the extension's mocked auth flow with real API calls.
+
+- `POST /api/auth/signup` — Create user via Supabase Auth, return session
+- `POST /api/auth/login` — Authenticate user, return session + user profile
+- `POST /api/auth/logout` — Sign out and invalidate session
+- `GET /api/auth/me` — Return current user profile + credit balance
+- Create auth middleware for protected routes (validate Supabase JWT from `Authorization: Bearer` header)
+- Create an `api-client.ts` in the extension (reusable fetch wrapper with JWT handling)
+- Replace `mockLogin`/`mockSignup`/`mockLogout` in `popup-store.ts` with real API calls
+- Replace `toggleAuth` dev toggle with proper auth gate
+- Fix audit issues: C10 (sign out deactivates inspector), D3 (auth loading state)
+- **Milestone:** User can sign up, log in, and log out with real Supabase Auth. Session persists across browser restarts. JWT is stored in `chrome.storage.local`.
+
+### Phase 18 — Credits & Stripe Integration
+
+**Goal:** Build credit management API routes and Stripe payment integration, then replace the extension's mocked credit/purchase flow.
+
+- `GET /api/credits/balance` — Query Supabase for current balance
+- `GET /api/credits/transactions` — Query paginated transaction history
+- `POST /api/credits/create-checkout` — Create Stripe Checkout session, return URL
+- `POST /api/webhooks/stripe` — Handle `checkout.session.completed`, validate signature, credit user account
+- Create Stripe Price objects for 50/100/200 credit packs
+- Implement atomic credit deduction (used by extraction route, callable via DB function)
+- Replace `creditsSlice.ts` mock logic with real API calls via `api-client.ts`
+- Replace `runMockPurchase` in `mock-purchase.ts` with real Stripe Checkout redirect
+- Fix audit issues: C3 (credits deducted before extraction completes), V2 (signup credits bypassed), V3 (mock defaults used)
+- **Milestone:** Credit balance and transactions load from real Supabase data. Stripe Checkout opens, processes payment, and webhook credits the user's account. Balance updates in real-time.
+
+### Phase 19 — Extraction & LLM API
+
+**Goal:** Build the extraction API with LLM synthesis (Claude/GPT-4o), then replace the extension's mocked extraction flow with real API integration.
+
+- `POST /api/extractions` — Main extraction endpoint:
+  - Validate JWT and user session
+  - Check credit balance (≥ 1), deduct atomically
+  - Call LLM provider (Claude primary, GPT-4o fallback)
+  - Store result in `extractions` table
+  - Return `{ jsonBlueprint, generatedCode, id }`
+- `GET /api/extractions` — List user's extraction history (paginated)
+- `GET /api/extractions/[id]` — Get single extraction detail
+- `DELETE /api/extractions/[id]` — Delete extraction with confirmation
+- Create LLM provider abstraction layer:
+  - `claude.provider.ts` — Anthropic SDK call with system prompt
+  - `gpt4o.provider.ts` — OpenAI SDK call with system prompt
+  - Provider selection via `LLM_PROVIDER` env var
+- Implement rate limiting middleware:
+  - 10 extraction requests/min per user via Vercel KV + Upstash
+  - 5 auth requests/min per IP
+- Replace mock extraction flow in `extraction-store.ts` with real API calls
+- Replace `mock-extraction.ts` entirely — no more simulated delays
+- Fix audit issues: C2 (extraction not saved to history), C6 (history persistence)
+- **Milestone:** Full extraction pipeline works end-to-end: select element → API validates → credit deducted → LLM generates code → stored in DB → returned to sandbox. Rate limiting prevents abuse.
+
+### Phase 20 — Waitlist API & Landing Page Finalization
+
+**Goal:** Build the real waitlist API endpoint and finalize the landing page integration.
+
+- `POST /api/waitlist` — Insert email into `waitlist` table with duplicate check
+- Rate limiting: 2 requests/min per IP (anti-spam)
+- Update landing page `waitlist-form.tsx`:
+  - Replace mocked submission with real `POST /api/waitlist` call
+  - Handle 409 (duplicate email) gracefully — "You're already on the list!"
+  - Handle rate limit errors
+- Fix remaining landing page audit issues: Q7 (add `theme-color` meta tag and JSON-LD structured data), Q8 (clean up dual styling)
+- Update waitlist count on landing page (social proof section) — show real count from Supabase
+- **Milestone:** Real waitlist submissions go to Supabase. Landing page reflects live data. All audit issues resolved.
+
+### Phase 21 — Testing, Security & Deployment
+
+**Goal:** Comprehensive integration tests, security audit, Vercel deployment configuration, and CI/CD pipeline.
+
+- **Integration tests:**
+  - Auth flow: signup → login → me → logout → re-login
+  - Credits: balance check after signup, transaction history
+  - Extraction: deduct credit → call mock LLM → verify stored result
+  - Stripe webhook: simulate `checkout.session.completed` → verify credit grant
+  - Waitlist: submit → duplicate → rate limit
+  - Error cases: insufficient credits, unauthenticated requests, invalid JWT
+- **Security audit:**
+  - Verify all RLS policies with `supabase-js` tests
+  - Verify Stripe webhook signature validation
+  - Verify CORS headers only allow extension origin
+  - Verify rate limiting on all public endpoints
+  - Verify JWT validation does not leak user data
+- **Deployment:**
+  - Configure `vercel.json` for `apps/landing`
+  - Set all environment variables in Vercel dashboard
+  - Configure Vercel KV for rate limiting
+  - Set Stripe webhook endpoint URL → Vercel production URL
+- **CI/CD:**
+  - Add GitHub Actions workflow for backend integration tests
+  - Add Vercel Preview Deployments on PR
+  - Add database migration step to deploy pipeline
+- Update `progress-history.md` with backend phase completions
+- **Milestone:** All 21 phases complete. Full-stack VantageUI runs end-to-end: user signs up, receives free credits, extracts a component via LLM, sees it in Sandpack, purchases more credits via Stripe. Vercel production deployment active.

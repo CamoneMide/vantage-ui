@@ -123,7 +123,7 @@ export function CreditBalanceCard({ balance }: CreditBalanceCardProps) {
             }}
           >
             <span>0 credits</span>
-            <span>50 max capacity</span>
+            <span>{balance > 50 ? `${balance} credits` : '50 max capacity'}</span>
           </div>
         </div>
       </CardContent>

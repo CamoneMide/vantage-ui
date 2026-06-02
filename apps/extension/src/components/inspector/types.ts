@@ -8,6 +8,9 @@ export const ARIA_ATTRIBUTES = [
   'aria-selected',
   'aria-checked',
   'aria-current',
+] as const;
+
+export const DATA_ATTRIBUTES = [
   'data-state',
 ] as const;
 

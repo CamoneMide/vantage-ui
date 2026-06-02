@@ -59,6 +59,33 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${outfit.variable} ${dmSans.variable}`}>
+      <head>
+        <meta name="theme-color" content="#053B84" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'SoftwareApplication',
+              name: 'VantageUI',
+              applicationCategory: 'DeveloperApplication',
+              operatingSystem: 'ChromeOS, macOS, Windows',
+              description:
+                'VantageUI is a Chrome extension that extracts any live website component and synthesizes it into production-ready React/Tailwind/Shadcn code.',
+              url: SITE_URL,
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'USD',
+              },
+              author: {
+                '@type': 'Organization',
+                name: 'VantageUI',
+              },
+            }),
+          }}
+        />
+      </head>
       <body style={{ fontFamily: 'var(--font-body), DM Sans, sans-serif' }}>{children}</body>
     </html>
   );

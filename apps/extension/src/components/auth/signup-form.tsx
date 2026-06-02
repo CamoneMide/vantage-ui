@@ -29,26 +29,18 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
   const onSubmit = async (data: SignupFormData) => {
     await mockSignup(data.email);
     toast({
-      title: 'Welcome! 5 free credits added to your account. 🎉',
+      title: 'Welcome! 5 free credits added to your account.',
       description: "You're all set to start using VantageUI.",
     });
   };
 
   return (
-    <div
-      className="bg-white rounded-xl p-8"
-      style={{
-        boxShadow: '0px 4px 12px rgba(0,0,0,0.05)',
-      }}
-    >
+    <div className="bg-white rounded-xl p-8 shadow-level-2">
       <div className="mb-6">
         <h2 className="text-2xl font-semibold font-display text-gray-900 mb-1">
           Create your account
         </h2>
-        <p
-          className="text-sm font-body text-gray-500"
-          style={{ color: 'rgba(10,10,10,0.6)' }}
-        >
+        <p className="text-sm font-body text-gray-500">
           5 free credits included on sign-up.
         </p>
       </div>

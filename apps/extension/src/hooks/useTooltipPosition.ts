@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
 import type { TooltipPlacement } from '../config/onboarding.config';
 
@@ -8,11 +8,11 @@ interface Position {
 }
 
 const GAP = 8;
+const TOOLTIP_WIDTH = 280;
 
 function calculatePosition(
   targetRect: DOMRect,
   placement: TooltipPlacement,
-  tooltipWidth: number,
   tooltipHeight: number,
   viewportWidth: number,
   viewportHeight: number,
@@ -25,17 +25,17 @@ function calculatePosition(
     {
       placement: 'bottom',
       top: targetRect.bottom + GAP,
-      left: targetRect.left + targetRect.width / 2 - tooltipWidth / 2,
+      left: targetRect.left + targetRect.width / 2 - TOOLTIP_WIDTH / 2,
     },
     {
       placement: 'top',
       top: targetRect.top - tooltipHeight - GAP,
-      left: targetRect.left + targetRect.width / 2 - tooltipWidth / 2,
+      left: targetRect.left + targetRect.width / 2 - TOOLTIP_WIDTH / 2,
     },
     {
       placement: 'left',
       top: targetRect.top + targetRect.height / 2 - tooltipHeight / 2,
-      left: targetRect.left - tooltipWidth - GAP,
+      left: targetRect.left - TOOLTIP_WIDTH - GAP,
     },
     {
       placement: 'right',
@@ -54,7 +54,7 @@ function calculatePosition(
 
   const best = sorted.find(
     (pos) => pos.left >= 0
-      && pos.left + tooltipWidth <= viewportWidth
+      && pos.left + TOOLTIP_WIDTH <= viewportWidth
       && pos.top >= 0
       && pos.top + tooltipHeight <= viewportHeight,
   );
@@ -67,8 +67,8 @@ function calculatePosition(
     left: Math.max(
       8,
       Math.min(
-        viewportWidth - tooltipWidth - 8,
-        targetRect.left + targetRect.width / 2 - tooltipWidth / 2,
+        viewportWidth - TOOLTIP_WIDTH - 8,
+        targetRect.left + targetRect.width / 2 - TOOLTIP_WIDTH / 2,
       ),
     ),
   };
@@ -77,26 +77,25 @@ function calculatePosition(
 export function useTooltipPosition(
   targetId: string | null,
   placement: TooltipPlacement,
-): { position: Position; currentPlacement: TooltipPlacement } {
+): { position: Position; currentPlacement: TooltipPlacement; tooltipRef: React.RefObject<HTMLDivElement | null> } {
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
   const [position, setPosition] = useState<Position>({ top: 0, left: 0 });
   const [currentPlacement, setCurrentPlacement] = useState<TooltipPlacement>(placement);
 
-  useLayoutEffect(() => {
+  const recalculate = useCallback(() => {
     if (!targetId) return;
 
     const target = document.getElementById(targetId);
     if (!target) return;
 
     const targetRect = target.getBoundingClientRect();
-    const tooltipWidth = 280;
-    const tooltipHeight = 200;
+    const tooltipHeight = tooltipRef.current?.offsetHeight ?? 200;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
     const result = calculatePosition(
       targetRect,
       placement,
-      tooltipWidth,
       tooltipHeight,
       viewportWidth,
       viewportHeight,
@@ -106,5 +105,22 @@ export function useTooltipPosition(
     setCurrentPlacement(result.placement);
   }, [targetId, placement]);
 
-  return { position, currentPlacement };
+  useLayoutEffect(() => {
+    recalculate();
+  }, [recalculate]);
+
+  // Recalculate on resize or scroll
+  useLayoutEffect(() => {
+    if (!targetId) return;
+
+    const handleChange = () => recalculate();
+    window.addEventListener('resize', handleChange);
+    window.addEventListener('scroll', handleChange, true);
+    return () => {
+      window.removeEventListener('resize', handleChange);
+      window.removeEventListener('scroll', handleChange, true);
+    };
+  }, [targetId, recalculate]);
+
+  return { position, currentPlacement, tooltipRef };
 }

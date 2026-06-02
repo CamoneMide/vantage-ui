@@ -3,12 +3,14 @@
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
+import { runMockWaitlistSubmission } from '@/mocks/mock-waitlist-submission';
 import { waitlistSchema } from '@/schemas/waitlist.schema';
 
 export function WaitlistForm() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,13 +23,56 @@ export function WaitlistForm() {
     }
 
     setStatus('loading');
+    setSubmissionError(null);
 
-    await new Promise<void>((resolve) => {
-      setTimeout(resolve, 1500);
-    });
+    try {
+      await runMockWaitlistSubmission();
+    } catch (err) {
+      setSubmissionError(
+        err instanceof Error ? err.message : 'Submission failed. Please try again.',
+      );
+      setStatus('error');
+      return;
+    }
 
     setStatus('success');
   };
+
+  if (status === 'error') {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '14px 20px',
+          background: 'rgba(220, 38, 38, 0.06)',
+          borderRadius: '8px',
+          border: '1px solid rgba(220, 38, 38, 0.2)',
+        }}
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="10" fill="#DC2626" />
+          <path
+            d="M6 6L14 14M14 6L6 14"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+        <span
+          style={{
+            fontFamily: 'var(--font-body), DM Sans, sans-serif',
+            fontSize: '15px',
+            fontWeight: 500,
+            color: '#DC2626',
+          }}
+        >
+          {submissionError || 'Something went wrong. Please try again.'}
+        </span>
+      </div>
+    );
+  }
 
   if (status === 'success') {
     return (

@@ -8,7 +8,11 @@
   "exports": {
     ".": "./src/index.ts",
     "./globals.css": "./src/globals.css",
-    "./tailwind.config": "./tailwind.config.ts"
+    "./tailwind.config": {
+      "types": "./tailwind.config.ts",
+      "require": "./tailwind.config.cjs",
+      "default": "./tailwind.config.ts"
+    }
   },
   "scripts": {
     "lint": "eslint ."

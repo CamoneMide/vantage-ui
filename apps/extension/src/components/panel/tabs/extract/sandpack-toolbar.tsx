@@ -22,12 +22,15 @@ function SandpackToolbar({ sourceUrl }: SandpackToolbarProps) {
     const code = sandpack.files['/App.tsx']?.code;
     if (!code) return;
     const date = new Date().toISOString().split('T')[0];
-    const attribution = `// Component extracted from: ${sourceUrl ?? 'unknown source'} on ${date} using VantageUI.\n\n`;
-    const blob = new Blob([attribution + code], { type: 'text/typescript' });
+    const domain = sourceUrl
+      ? sourceUrl.replace(/https?:\/\//, '').replace(/[^a-zA-Z0-9]/g, '-')
+      : 'unknown';
+    const attrib = `// Component extracted from: ${sourceUrl ?? 'unknown source'} on ${date} using VantageUI.\n\n`;
+    const blob = new Blob([attrib + code], { type: 'text/typescript' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'VantageUI-Component.tsx';
+    a.download = `VantageUI-${domain}-${date}.tsx`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

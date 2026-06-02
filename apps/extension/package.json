@@ -57,6 +57,13 @@
           "mac": "Command+Shift+X"
         },
         "description": "Toggle VantageUI Inspector"
+      },
+      "open-side-panel": {
+        "suggested_key": {
+          "default": "Ctrl+Shift+Y",
+          "mac": "Command+Shift+Y"
+        },
+        "description": "Open VantageUI Side Panel"
       }
     }
   }

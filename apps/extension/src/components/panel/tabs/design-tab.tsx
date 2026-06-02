@@ -1,5 +1,5 @@
 import { RotateCcw } from 'lucide-react';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 /* eslint-disable-next-line import/extensions */
 import { useDesignSystemStore } from '~store/designSystemSlice';
@@ -24,21 +24,40 @@ function DesignTab() {
   const resetScan = useDesignSystemStore((s) => s.resetScan);
 
   const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reScanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearTimers = useCallback(() => {
+    if (scanTimerRef.current) {
+      clearTimeout(scanTimerRef.current);
+      scanTimerRef.current = null;
+    }
+    if (reScanTimerRef.current) {
+      clearTimeout(reScanTimerRef.current);
+      reScanTimerRef.current = null;
+    }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => clearTimers();
+  }, [clearTimers]);
 
   const handleStartScan = useCallback(() => {
+    clearTimers();
     startScan();
     scanTimerRef.current = setTimeout(() => {
       setScanResults();
     }, 2500);
-  }, [startScan, setScanResults]);
+  }, [startScan, setScanResults, clearTimers]);
 
   const handleReScan = useCallback(() => {
+    clearTimers();
     resetScan();
     // small delay to let the idle state mount, then start
-    setTimeout(() => {
+    reScanTimerRef.current = setTimeout(() => {
       handleStartScan();
     }, 50);
-  }, [resetScan, handleStartScan]);
+  }, [resetScan, handleStartScan, clearTimers]);
 
   if (scanStatus === 'idle') {
     return <DesignTabIdleState onStartScan={handleStartScan} />;

@@ -2,8 +2,6 @@ import { create } from 'zustand';
 
 import type { SelectedElementData } from '~schemas/inspector.schema';
 
-import { useCreditsStore } from './creditsSlice';
-
 export type ExtractionStatus =
   | 'idle'
   | 'element-selected'
@@ -32,6 +30,8 @@ export interface JsonBlueprint {
   }>
 }
 
+export const MAX_RETRIES = 3;
+
 interface ExtractionState {
   status: ExtractionStatus
   currentStep: ExtractionStep | null
@@ -40,6 +40,7 @@ interface ExtractionState {
   generatedCode: string | null
   sourceUrl: string | null
   error: { type: ExtractionErrorType; message: string } | null
+  retryCount: number
   sandboxView: boolean
   promptView: boolean
 }
@@ -52,6 +53,7 @@ const initialState: ExtractionState = {
   generatedCode: null,
   sourceUrl: null,
   error: null,
+  retryCount: 0,
   sandboxView: false,
   promptView: false,
 };
@@ -79,12 +81,19 @@ export const useExtractionStore = create<ExtractionStore>((set) => ({
   }),
 
   startExtraction: (sourceUrl) => {
-    const { selectedElement } = useExtractionStore.getState();
-    const tagName = selectedElement?.tagName
-      ? `<${selectedElement.tagName.toLowerCase()}>`
-      : 'Component';
-    useCreditsStore.getState().deductCredit(`${tagName} Extraction`);
+    const { selectedElement, status } = useExtractionStore.getState();
 
+    // Guard: prevent concurrent extractions
+    if (status === 'extracting') return;
+
+    if (!selectedElement) {
+      set({
+        status: 'error',
+        currentStep: null,
+        error: { type: 'unknown', message: 'No element selected. Please select an element first.' },
+      });
+      return;
+    }
     set({
       status: 'extracting',
       currentStep: 'capturing',
@@ -94,18 +103,21 @@ export const useExtractionStore = create<ExtractionStore>((set) => ({
 
   setStep: (step) => set({ currentStep: step }),
 
-  setSuccess: (blueprint, code) => set({
-    status: 'success',
-    currentStep: null,
-    jsonBlueprint: blueprint,
-    generatedCode: code,
-  }),
+  setSuccess: (blueprint, code) => {
+    set({
+      status: 'success',
+      currentStep: null,
+      jsonBlueprint: blueprint,
+      generatedCode: code,
+    });
+  },
 
-  setError: (type, message) => set({
+  setError: (type, message) => set((state) => ({
     status: 'error',
     currentStep: null,
     error: { type, message },
-  }),
+    retryCount: state.retryCount + 1,
+  })),
 
   setSandboxView: (view) => set({ sandboxView: view, promptView: false }),
 

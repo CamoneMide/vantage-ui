@@ -1,5 +1,5 @@
 import {
-  Popover, PopoverContent, PopoverTrigger, toast,
+  Dialog, DialogContent, DialogTrigger, toast,
 } from '@vantage-ui/ui';
 import { formatDistanceToNow } from 'date-fns';
 import { Sparkles, Trash2 } from 'lucide-react';
@@ -27,19 +27,21 @@ interface HistoryItemProps {
  * @returns {JSX.Element} A single history item card.
  */
 function HistoryItem({ item, index }: HistoryItemProps) {
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const removeItem = useHistoryStore((s) => s.removeItem);
   const setSuccess = useExtractionStore((s) => s.setSuccess);
+  const setSandboxView = useExtractionStore((s) => s.setSandboxView);
   const setActiveTab = useUIStore((s) => s.setActiveTab);
 
   const handleReopen = useCallback(() => {
     setSuccess(item.jsonBlueprint, item.generatedCode);
+    setSandboxView(true);
     setActiveTab('extract');
-  }, [item, setSuccess, setActiveTab]);
+  }, [item, setSuccess, setSandboxView, setActiveTab]);
 
   const handleDelete = useCallback(() => {
     removeItem(item.id);
-    setPopoverOpen(false);
+    setDialogOpen(false);
     toast({
       title: 'Extraction deleted.',
     });
@@ -139,8 +141,8 @@ function HistoryItem({ item, index }: HistoryItemProps) {
           <Sparkles size={14} strokeWidth={1.5} />
         </button>
 
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger asChild>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
             <button
               type="button"
               aria-label="Delete extraction"
@@ -161,10 +163,9 @@ function HistoryItem({ item, index }: HistoryItemProps) {
             >
               <Trash2 size={14} strokeWidth={1.5} />
             </button>
-          </PopoverTrigger>
-          <PopoverContent
-            side="top"
-            align="end"
+          </DialogTrigger>
+          <DialogContent
+            onPointerDownOutside={(e) => e.preventDefault()}
             style={{
               background: '#FFFFFF',
               border: '1px solid rgba(10,10,10,0.08)',
@@ -172,6 +173,9 @@ function HistoryItem({ item, index }: HistoryItemProps) {
               padding: '16px',
               boxShadow: '0px 8px 24px rgba(0,0,0,0.1)',
               width: '220px',
+              top: 'auto',
+              left: 'auto',
+              transform: 'none',
             }}
           >
             <p
@@ -193,7 +197,7 @@ function HistoryItem({ item, index }: HistoryItemProps) {
             >
               <button
                 type="button"
-                onClick={() => setPopoverOpen(false)}
+                onClick={() => setDialogOpen(false)}
                 style={{
                   padding: '6px 12px',
                   border: 'none',
@@ -226,8 +230,8 @@ function HistoryItem({ item, index }: HistoryItemProps) {
                 Delete
               </button>
             </div>
-          </PopoverContent>
-        </Popover>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

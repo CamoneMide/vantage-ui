@@ -29,6 +29,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     description:
       'Toggle the Ghost Inspector directly on any webpage using Ctrl+Shift+X.',
     targetId: 'panel-tab-extract',
+    // targetId: 'extract-keyboard-shortcut',
     placement: 'top',
   },
   {

@@ -8,7 +8,7 @@ import {
   mockTypographyScale,
 } from '~mocks/design-system.mock';
 
-export type ScanStatus = 'idle' | 'scanning' | 'complete';
+export type ScanStatus = 'idle' | 'scanning' | 'complete' | 'error';
 
 interface DesignSystemState {
   scanStatus: ScanStatus

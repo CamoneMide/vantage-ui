@@ -1,3 +1,5 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { Avatar, AvatarFallback, CreditBadge } from '@vantage-ui/ui';
 
 import { usePopupStore } from '../../store/popup-store';
@@ -23,19 +25,28 @@ function VantageUiLogo() {
   );
 }
 
-/**
- * PanelHeader component for the side panel.
- * Displays VantageUI branding on the left and the user's credit balance
- * + avatar initial on the right.
- *
- * @returns {JSX.Element} The side panel header bar.
- */
 function PanelHeader() {
   const creditBalance = usePopupStore((s) => s.creditBalance);
   const userEmail = usePopupStore((s) => s.userEmail);
+  const authState = usePopupStore((s) => s.authState);
+  const mockLogout = usePopupStore((s) => s.mockLogout);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  /** Derive avatar initials from email address or fall back to "V". */
   const initials = userEmail ? userEmail.charAt(0).toUpperCase() : 'V';
+
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      setMenuOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen, handleClickOutside]);
 
   return (
     <div
@@ -51,7 +62,6 @@ function PanelHeader() {
         flexShrink: 0,
       }}
     >
-      {/* Left: Logo + Wordmark */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <VantageUiLogo />
         <span
@@ -66,21 +76,101 @@ function PanelHeader() {
         </span>
       </div>
 
-      {/* Right: Credit Badge + Avatar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <CreditBadge balance={creditBalance} size="sm" />
-        <Avatar style={{ width: '32px', height: '32px' }}>
-          <AvatarFallback
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
+        {authState === 'authenticated' && <CreditBadge balance={creditBalance} size="sm" />}
+        <div ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
             style={{
-              background: '#053B84',
-              color: '#FFFFFF',
-              fontSize: '13px',
-              fontWeight: 600,
+              padding: 0,
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              borderRadius: '50%',
             }}
+            aria-label="User menu"
+            aria-expanded={menuOpen}
           >
-            {initials}
-          </AvatarFallback>
-        </Avatar>
+            <Avatar style={{ width: '32px', height: '32px' }}>
+              <AvatarFallback
+                style={{
+                  background: '#053B84',
+                  color: '#FFFFFF',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                }}
+              >
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </button>
+          {menuOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: '4px',
+                background: '#FFFFFF',
+                border: '1px solid rgba(10,10,10,0.08)',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                minWidth: '160px',
+                zIndex: 1000,
+                padding: '4px',
+              }}
+            >
+              {userEmail && (
+                <div
+                  style={{
+                    padding: '8px 12px',
+                    fontSize: '12px',
+                    color: 'rgba(10,10,10,0.5)',
+                    borderBottom: '1px solid rgba(10,10,10,0.06)',
+                    marginBottom: '4px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {userEmail}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  mockLogout();
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '8px 12px',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'DM Sans, sans-serif',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  color: '#E53E3E',
+                  borderRadius: '6px',
+                  transition: 'background 150ms',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = '#FFF5F5';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'none';
+                }}
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

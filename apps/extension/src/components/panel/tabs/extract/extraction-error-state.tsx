@@ -1,6 +1,8 @@
 import { AlertTriangle } from 'lucide-react';
 
 import type { ExtractionErrorType } from '~store/extraction-store';
+import { MAX_RETRIES, useExtractionStore } from '~store/extraction-store';
+import { useUIStore } from '~store/ui-slice';
 
 interface ExtractionErrorStateProps {
   errorType: ExtractionErrorType
@@ -21,8 +23,11 @@ function ExtractionErrorState({
   errorMessage,
   onRetry,
 }: ExtractionErrorStateProps) {
-  const canRetry = errorType !== 'insufficient-credits';
+  const setActiveTab = useUIStore((s) => s.setActiveTab);
+  const retryCount = useExtractionStore((s) => s.retryCount);
+  const canRetry = errorType !== 'insufficient-credits' && retryCount < MAX_RETRIES;
   const isCreditError = errorType === 'insufficient-credits';
+  const isExhausted = retryCount >= MAX_RETRIES;
 
   return (
     <div
@@ -76,11 +81,24 @@ function ExtractionErrorState({
             </span>
           </div>
         </div>
+        {isExhausted && !isCreditError && (
+          <p
+            style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '12px',
+              color: '#EF4444',
+              margin: 0,
+            }}
+          >
+            Maximum retry attempts reached. Contact support if this persists.
+          </p>
+        )}
       </div>
 
       {isCreditError ? (
         <button
           type="button"
+          onClick={() => setActiveTab('credits')}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -100,7 +118,7 @@ function ExtractionErrorState({
         >
           Purchase Credits
         </button>
-      ) : (
+      ) : canRetry ? (
         <button
           type="button"
           onClick={onRetry}
@@ -123,9 +141,9 @@ function ExtractionErrorState({
         >
           Try Again
         </button>
-      )}
+      ) : null}
 
-      {canRetry && (
+      {canRetry && !isCreditError && (
         <p
           style={{
             fontFamily: 'DM Sans, sans-serif',

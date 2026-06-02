@@ -63,6 +63,7 @@ function ExtractionIdleState() {
           extract it.
         </p>
         <kbd
+          id="extract-keyboard-shortcut"
           style={{
             display: 'inline-flex',
             alignItems: 'center',

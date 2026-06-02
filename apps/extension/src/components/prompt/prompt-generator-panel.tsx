@@ -1,8 +1,9 @@
 import { Check, Clipboard } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
+import { generatePrompt } from '~mocks/generate-prompt';
 import type { Framework } from '~mocks/prompts.mock';
-import { mockPrompts } from '~mocks/prompts.mock';
+import { useExtractionStore } from '~store/extraction-store';
 
 import { FrameworkSelector } from './framework-selector';
 import { PromptDisplay } from './prompt-display';
@@ -17,12 +18,21 @@ import { PromptDisplay } from './prompt-display';
 function PromptGeneratorPanel() {
   const [framework, setFramework] = useState<Framework>('shadcn');
   const [copied, setCopied] = useState(false);
+  const selectedElement = useExtractionStore((s) => s.selectedElement);
+  const jsonBlueprint = useExtractionStore((s) => s.jsonBlueprint);
+  const generatedCode = useExtractionStore((s) => s.generatedCode);
+  const sourceUrl = useExtractionStore((s) => s.sourceUrl);
+
+  const prompt = useMemo(
+    () => generatePrompt(framework, selectedElement, jsonBlueprint, generatedCode, sourceUrl),
+    [framework, selectedElement, jsonBlueprint, generatedCode, sourceUrl],
+  );
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(mockPrompts[framework]).catch(() => {});
+    navigator.clipboard.writeText(prompt).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [framework]);
+  }, [prompt]);
 
   const handleFrameworkChange = useCallback((value: Framework) => {
     setFramework(value);
@@ -70,7 +80,7 @@ function PromptGeneratorPanel() {
       <FrameworkSelector value={framework} onChange={handleFrameworkChange} />
 
       {/* Prompt Display */}
-      <PromptDisplay framework={framework} />
+      <PromptDisplay framework={framework} prompt={prompt} />
 
       {/* Copy Button */}
       <button

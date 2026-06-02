@@ -1,7 +1,7 @@
 # 02 — Technical Specification: VantageUI (Frontend Only)
 
 **Status:** Approved — Planning Phase  
-**Scope:** Frontend implementation only. Backend (Supabase, Stripe, Vercel API routes) is NOT covered here.
+**Scope:** Frontend implementation complete. Backend (Supabase, Stripe, Vercel API routes, LLM proxy) covered below.
 
 ---
 
@@ -287,3 +287,221 @@ Single-screen popup with:
 - Every Zod schema must have a passing + failing test case
 - Every utility function (mock extraction simulator, credit deduction) must have a unit test
 - Manual UI verification checklist per phase (see task files)
+
+---
+
+## 8. Backend Architecture Overview
+
+### System Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                     CHROME EXTENSION                             │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────────┐ │
+│  │   Popup     │  │  Side Panel  │  │  Content Script         │ │
+│  │  (320×480)  │  │  (400px+)    │  │  (Inspector Overlay)    │ │
+│  └──────┬──────┘  └──────┬───────┘  └───────────┬─────────────┘ │
+│         │                │                       │               │
+│         └────────────────┼───────────────────────┘               │
+│                          │                                       │
+│                   fetch() / JWT                                  │
+└──────────────────────────┼───────────────────────────────────────┘
+                           │
+┌──────────────────────────▼───────────────────────────────────────┐
+│                    NEXT.JS API (apps/landing)                     │
+│                                                                   │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │              API Routes (/api/*)                          │    │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │    │
+│  │  │  Auth    │  │ Credits  │  │Extraction│  │ Waitlist │ │    │
+│  │  │  Routes  │  │ & Stripe │  │ & LLM   │  │  Route   │ │    │
+│  │  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘ │    │
+│  │       │              │             │              │       │    │
+│  │  ┌────▼──────────────▼─────────────▼──────────────▼────┐  │    │
+│  │  │           Auth Middleware (JWT Validation)           │  │    │
+│  │  └──────────────────────┬──────────────────────────────┘  │    │
+│  └─────────────────────────┼─────────────────────────────────┘    │
+│                            │                                      │
+└────────────────────────────┼──────────────────────────────────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+     ┌────────▼───┐  ┌──────▼──────┐  ┌────▼──────┐
+     │  Supabase  │  │   Stripe   │  │   LLM     │
+     │  (Auth +   │  │  (Payment  │  │  (Claude / │
+     │   DB)      │  │  Gateway)  │  │   GPT-4o)  │
+     └────────────┘  └────────────┘  └───────────┘
+```
+
+### API Route Design
+
+| Method | Route                          | Auth Required | Purpose                              |
+|--------|--------------------------------|---------------|--------------------------------------|
+| POST   | `/api/auth/signup`             | No            | Register user via Supabase Auth      |
+| POST   | `/api/auth/login`              | No            | Login user, return session           |
+| POST   | `/api/auth/logout`             | Yes           | Invalidate session                   |
+| GET    | `/api/auth/me`                 | Yes           | Get current user profile + balance   |
+| GET    | `/api/credits/balance`         | Yes           | Get current credit balance           |
+| GET    | `/api/credits/transactions`    | Yes           | Get paginated transaction history    |
+| POST   | `/api/credits/create-checkout` | Yes           | Create Stripe Checkout session       |
+| POST   | `/api/webhooks/stripe`         | No (webhook)  | Stripe event handler                 |
+| POST   | `/api/extractions`             | Yes           | Create extraction (deduct + LLM)     |
+| GET    | `/api/extractions`             | Yes           | List user extraction history         |
+| GET    | `/api/extractions/[id]`        | Yes           | Get single extraction detail         |
+| DELETE | `/api/extractions/[id]`        | Yes           | Delete extraction                    |
+| POST   | `/api/waitlist`                | No            | Join waitlist                        |
+
+### Database Schema (Supabase)
+
+```sql
+-- Users table (extends Supabase Auth)
+CREATE TABLE public.users (
+  id            UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email         TEXT NOT NULL UNIQUE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Credits ledger (balance + transactions)
+CREATE TABLE public.credits (
+  user_id       UUID PRIMARY KEY REFERENCES public.users(id) ON DELETE CASCADE,
+  balance       INTEGER NOT NULL DEFAULT 0 CHECK (balance >= 0),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE public.credit_transactions (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  type          TEXT NOT NULL CHECK (type IN ('granted', 'spent', 'purchased')),
+  amount        INTEGER NOT NULL, -- positive for grants/purchases, negative for spent
+  description   TEXT NOT NULL DEFAULT '',
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_credit_tx_user ON public.credit_transactions(user_id, created_at DESC);
+
+-- Extractions history
+CREATE TABLE public.extractions (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  source_url      TEXT NOT NULL DEFAULT '',
+  source_domain   TEXT NOT NULL DEFAULT '',
+  element_tag     TEXT NOT NULL DEFAULT '',
+  captured_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  json_blueprint  JSONB NOT NULL DEFAULT '{}',
+  generated_code  TEXT NOT NULL DEFAULT '',
+  thumbnail_url   TEXT
+);
+
+CREATE INDEX idx_extractions_user ON public.extractions(user_id, captured_at DESC);
+
+-- Waitlist
+CREATE TABLE public.waitlist (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email         TEXT NOT NULL UNIQUE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Auto-create user profile + credits on signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.users (id, email)
+  VALUES (NEW.id, NEW.email);
+
+  INSERT INTO public.credits (user_id, balance)
+  VALUES (NEW.id, 5);
+
+  INSERT INTO public.credit_transactions (user_id, type, amount, description)
+  VALUES (NEW.id, 'granted', 5, 'Sign-up Welcome Bonus');
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+```
+
+### Row-Level Security (RLS) Policies
+
+```sql
+-- Users table: users can only read their own record
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "users_self" ON public.users
+  FOR ALL USING (auth.uid() = id);
+
+-- Credits: users can only read their own balance
+ALTER TABLE public.credits ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "credits_self" ON public.credits
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Credit transactions: users can only read their own transactions
+ALTER TABLE public.credit_transactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "tx_self" ON public.credit_transactions
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Extractions: users can CRUD their own extractions
+ALTER TABLE public.extractions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "extractions_self" ON public.extractions
+  FOR ALL USING (auth.uid() = user_id);
+
+-- Waitlist: insert only (anyone can sign up)
+ALTER TABLE public.waitlist ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "waitlist_insert" ON public.waitlist
+  FOR INSERT WITH CHECK (true);
+CREATE POLICY "waitlist_select_admin" ON public.waitlist
+  FOR SELECT USING (auth.jwt() ? 'is_admin' AND auth.jwt()->>'is_admin' = 'true');
+```
+
+### Tech Stack Additions
+
+| Tool                      | Purpose                                      |
+| ------------------------- | -------------------------------------------- |
+| **@supabase/supabase-js** | Supabase client (auth + database)            |
+| **@supabase/ssr**         | Supabase server-side auth for Next.js        |
+| **stripe**                | Stripe SDK for Checkout + Webhooks           |
+| **@anthropic-ai/sdk**     | Claude API client for LLM synthesis          |
+| **openai**                | GPT-4o API client (fallback)                 |
+| **@upstash/ratelimit**    | Serverless rate limiting for API routes      |
+| **@vercel/kv**            | Redis store for rate limiting (Vercel KV)    |
+| **zod**                   | Already present — used for API input validation|
+
+### Credit Packs (Stripe Price IDs)
+
+| Credits | Price   | Stripe Price ID (placeholder) |
+|---------|---------|-------------------------------|
+| 50      | $4.99   | `price_vantage_50`            |
+| 100     | $8.99   | `price_vantage_100`           |
+| 200     | $15.99  | `price_vantage_200`           |
+
+### LLM Provider Interface
+
+```typescript
+interface LLMProvider {
+  synthesize(params: {
+    systemPrompt: string;
+    jsonBlueprint: JsonBlueprint;
+    targetFramework: 'react-shadcn' | 'react-tailwind' | 'raw-html';
+  }): Promise<{ code: string; error?: string }>;
+}
+
+// Provider is selected at runtime based on env var LLM_PROVIDER
+// Values: 'claude' | 'gpt4o'
+```
+
+### Rate Limiting Strategy
+
+- **Extraction endpoint**: 10 requests/minute per user (prevent abuse, protect LLM costs)
+- **Auth endpoints**: 5 requests/minute per IP (prevent brute force)
+- **Waitlist endpoint**: 2 requests/minute per IP (prevent spam)
+- Implemented via Vercel KV + @upstash/ratelimit serverless middleware
+
+### Security Architecture
+
+- **JWT Authentication**: Supabase JWT validated on every protected API route via middleware
+- **Stripe Webhooks**: Signature validation via `stripe.webhooks.constructEvent()`
+- **LLM API Keys**: Stored exclusively as Vercel environment variables, never exposed to client
+- **CORS**: Restricted to `chrome-extension://` origin + landing page domain
+- **Credit Deduction**: Atomic — balance check and deduction in a single database transaction

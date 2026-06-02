@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { useCreditsStore } from './creditsSlice';
+
 export type AuthState = 'unauthenticated' | 'loading' | 'authenticated';
 
 interface PopupStore {
@@ -35,22 +37,34 @@ const chromeStorage = {
         return raw;
       }
     }
-    const val = localStorage.getItem(name);
-    return val ? JSON.parse(val) : null;
+    try {
+      const val = localStorage.getItem(name);
+      return val ? JSON.parse(val) : null;
+    } catch {
+      return null;
+    }
   },
   setItem: async (name: string, value: unknown) => {
     if (isChromeStorageAvailable) {
       await chrome.storage.local.set({ [name]: JSON.stringify(value) });
       return;
     }
-    localStorage.setItem(name, JSON.stringify(value));
+    try {
+      localStorage.setItem(name, JSON.stringify(value));
+    } catch {
+      // noop
+    }
   },
   removeItem: async (name: string) => {
     if (isChromeStorageAvailable) {
       await chrome.storage.local.remove(name);
       return;
     }
-    localStorage.removeItem(name);
+    try {
+      localStorage.removeItem(name);
+    } catch {
+      // noop
+    }
   },
 };
 
@@ -58,7 +72,7 @@ export const usePopupStore = create<PopupStore>()(
   persist(
     (set) => ({
       authState: 'unauthenticated',
-      creditBalance: 10,
+      creditBalance: 0,
       userEmail: null,
       user: null,
       error: null,
@@ -79,7 +93,6 @@ export const usePopupStore = create<PopupStore>()(
             state.authState === 'unauthenticated'
               ? { email: 'user@example.com' }
               : null,
-        creditBalance: state.authState === 'unauthenticated' ? 10 : 10,
         error: null,
       })),
 
@@ -89,6 +102,15 @@ export const usePopupStore = create<PopupStore>()(
         await new Promise<void>((resolve) => {
           setTimeout(() => resolve(), 1500);
         });
+
+        // Simulate occasional auth failure
+        if (Math.random() < 0.1) {
+          set({
+            authState: 'unauthenticated',
+            error: 'Invalid credentials. Please try again.',
+          });
+          return;
+        }
 
         set({
           authState: 'authenticated',
@@ -104,12 +126,22 @@ export const usePopupStore = create<PopupStore>()(
           setTimeout(() => resolve(), 1500);
         });
 
+        // Simulate occasional auth failure
+        if (Math.random() < 0.1) {
+          set({
+            authState: 'unauthenticated',
+            error: 'Signup failed. This email may already be registered.',
+          });
+          return;
+        }
+
         set({
           authState: 'authenticated',
           user: { email },
           userEmail: email,
-          creditBalance: 5,
         });
+
+        useCreditsStore.getState().initSignupCredits();
       },
 
       mockLogout: () => set({

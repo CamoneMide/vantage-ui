@@ -25,7 +25,10 @@ function DownloadButtons({ designMd, tailwindConfig }: DownloadButtonsProps) {
     const a = document.createElement('a');
     a.href = url;
     a.download = 'DESIGN.md';
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
     setTimeout(() => setDownloadingMd(false), 300);
   }, [designMd]);
@@ -37,7 +40,10 @@ function DownloadButtons({ designMd, tailwindConfig }: DownloadButtonsProps) {
     const a = document.createElement('a');
     a.href = url;
     a.download = 'tailwind.config.js';
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
     setTimeout(() => setDownloadingTw(false), 300);
   }, [tailwindConfig]);

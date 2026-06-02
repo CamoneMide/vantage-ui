@@ -90,4 +90,9 @@ export const mockErrors: MockErrorFixture[] = [
     message:
       'You need at least 1 credit to extract a component. Please purchase more credits.',
   },
+  {
+    type: 'unknown',
+    message:
+      'An unexpected error occurred during extraction. Please try again or contact support if the issue persists.',
+  },
 ];

@@ -2,6 +2,7 @@ import { Button, toast } from '@vantage-ui/ui';
 import { Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
 
+import { runMockPurchase } from '../../../../mocks/mock-purchase';
 import { useCreditsStore } from '../../../../store/creditsSlice';
 
 type CreditPack = {
@@ -48,18 +49,25 @@ export function CreditPackSelector() {
   const handlePurchase = async () => {
     setIsPurchasing(true);
 
-    // Simulate standard checkout workflow
-    await new Promise<void>((resolve) => {
-      setTimeout(resolve, 2000);
-    });
+    try {
+      await runMockPurchase();
+    } catch {
+      setIsPurchasing(false);
+      toast({
+        title: 'Purchase Failed',
+        description: 'The transaction could not be completed. Please try again.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     addCredits(selectedPack.credits, selectedPack.name);
     setIsPurchasing(false);
 
     toast({
       title: 'Purchase Successful!',
-      description: `✓ ${selectedPack.credits} credits have been added to your account.`,
-    } as any); // using standard toast params
+      description: `${selectedPack.credits} credits have been added to your account.`,
+    });
   };
 
   return (
