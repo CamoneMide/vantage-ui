@@ -1,7 +1,10 @@
 import { AlertTriangle } from 'lucide-react';
 
+/* eslint-disable-next-line import/extensions */
 import type { ExtractionErrorType } from '~store/extraction-store';
+/* eslint-disable-next-line import/extensions */
 import { MAX_RETRIES, useExtractionStore } from '~store/extraction-store';
+/* eslint-disable-next-line import/extensions */
 import { useUIStore } from '~store/ui-slice';
 
 interface ExtractionErrorStateProps {
@@ -95,7 +98,7 @@ function ExtractionErrorState({
         )}
       </div>
 
-      {isCreditError ? (
+      {isCreditError && (
         <button
           type="button"
           onClick={() => setActiveTab('credits')}
@@ -118,7 +121,8 @@ function ExtractionErrorState({
         >
           Purchase Credits
         </button>
-      ) : canRetry ? (
+      )}
+      {canRetry && !isCreditError && (
         <button
           type="button"
           onClick={onRetry}
@@ -141,7 +145,7 @@ function ExtractionErrorState({
         >
           Try Again
         </button>
-      ) : null}
+      )}
 
       {canRetry && !isCreditError && (
         <p

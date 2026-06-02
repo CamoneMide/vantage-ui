@@ -1,7 +1,12 @@
+/* eslint-disable-next-line import/extensions */
 import { mockGeneratedCode, mockJsonBlueprint } from '~mocks/extractions.mock';
+/* eslint-disable-next-line import/extensions */
 import { useExtractionStore } from '~store/extraction-store';
+/* eslint-disable-next-line import/extensions */
 import type { ExtractionErrorType } from '~store/extraction-store';
+/* eslint-disable-next-line import/extensions */
 import { useCreditsStore } from '~store/creditsSlice';
+/* eslint-disable-next-line import/extensions */
 import { useHistoryStore } from '~store/historySlice';
 
 interface MockExtractionOptions {

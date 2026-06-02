@@ -2,12 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 
 interface OnboardingBackdropProps {
   targetId: string | null
-  stepId: number
 }
 
 export function OnboardingBackdrop({
   targetId,
-  stepId,
 }: OnboardingBackdropProps) {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
 

@@ -33,17 +33,14 @@ function AuthenticatedView() {
   }, [setInspectorActive]);
 
   const sendToggleMessage = async (tabId: number, retries = 3): Promise<boolean> => {
-    for (let i = 0; i < retries; i++) {
-      try {
-        await chrome.tabs.sendMessage(tabId, { type: 'TOGGLE_INSPECTOR' });
-        return true;
-      } catch {
-        if (i < retries - 1) {
-          await new Promise((r) => setTimeout(r, 200));
-        }
-      }
+    try {
+      await chrome.tabs.sendMessage(tabId, { type: 'TOGGLE_INSPECTOR' });
+      return true;
+    } catch {
+      if (retries <= 1) return false;
+      await new Promise<void>((resolve) => { setTimeout(() => resolve(), 200); });
+      return sendToggleMessage(tabId, retries - 1);
     }
-    return false;
   };
 
   const handleToggleInspector = async () => {
@@ -125,70 +122,83 @@ function AuthenticatedView() {
         <CreditBadge balance={creditBalance} size="md" />
       </div>
 
-      <button
-        type="button"
-        onClick={handleToggleInspector}
-        disabled={isToggling}
-        style={{
-          width: '100%',
-          padding: '12px 16px',
-          backgroundColor: isToggling ? '#6B7280' : inspectorActive ? '#DC2626' : '#053B84',
-          color: '#FFFFFF',
-          border: 'none',
-          borderRadius: '8px',
-          fontFamily: 'DM Sans, sans-serif',
-          fontSize: '15px',
-          fontWeight: 500,
-          cursor: isToggling ? 'default' : 'pointer',
-          boxShadow: inspectorActive
-            ? '0px 2px 4px rgba(220,38,38,0.20)'
-            : '0px 2px 4px rgba(5,59,132,0.20)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          marginBottom: '12px',
-          transition: 'background-color 150ms ease-out',
-        }}
-      >
-        {isToggling ? (
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            style={{ animation: 'spin 0.8s linear infinite' }}
+      {(() => {
+        let bgColor = '#053B84';
+        if (isToggling) bgColor = '#6B7280';
+        else if (inspectorActive) bgColor = '#DC2626';
+
+        let shadow = '0px 2px 4px rgba(5,59,132,0.20)';
+        if (inspectorActive) shadow = '0px 2px 4px rgba(220,38,38,0.20)';
+
+        let label = 'Activate Inspector';
+        if (isToggling) label = 'Connecting...';
+        else if (inspectorActive) label = 'Deactivate Inspector';
+
+        return (
+          <button
+            type="button"
+            onClick={handleToggleInspector}
+            disabled={isToggling}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              backgroundColor: bgColor,
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '8px',
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '15px',
+              fontWeight: 500,
+              cursor: isToggling ? 'default' : 'pointer',
+              boxShadow: shadow,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              marginBottom: '12px',
+              transition: 'background-color 150ms ease-out',
+            }}
           >
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="rgba(255,255,255,0.3)"
-              strokeWidth="3"
-            />
-            <path
-              d="M12 2a10 10 0 0 1 10 10"
-              stroke="#FFFFFF"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-          </svg>
-        ) : (
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-          </svg>
-        )}
-        {isToggling ? 'Connecting...' : inspectorActive ? 'Deactivate Inspector' : 'Activate Inspector'}
-      </button>
+            {isToggling ? (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                style={{ animation: 'spin 0.8s linear infinite' }}
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="rgba(255,255,255,0.3)"
+                  strokeWidth="3"
+                />
+                <path
+                  d="M12 2a10 10 0 0 1 10 10"
+                  stroke="#FFFFFF"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+              </svg>
+            ) : (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+            )}
+            {label}
+          </button>
+        );
+      })()}
 
       <button
         type="button"

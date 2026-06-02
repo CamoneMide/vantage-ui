@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import { useCreditsStore } from './creditsSlice';
+import { setBalanceSync } from './store-sync';
 
 export type AuthState = 'unauthenticated' | 'loading' | 'authenticated';
 
@@ -70,94 +71,96 @@ const chromeStorage = {
 
 export const usePopupStore = create<PopupStore>()(
   persist(
-    (set) => ({
-      authState: 'unauthenticated',
-      creditBalance: 0,
-      userEmail: null,
-      user: null,
-      error: null,
-      inspectorActive: false,
-
-      setAuthState: (authState) => set({ authState }),
-      setCreditBalance: (creditBalance) => set({ creditBalance }),
-      setUserEmail: (userEmail) => set({ userEmail }),
-
-      toggleAuth: () => set((state) => ({
-        authState:
-            state.authState === 'authenticated'
-              ? 'unauthenticated'
-              : 'authenticated',
-        userEmail:
-            state.authState === 'unauthenticated' ? 'user@example.com' : null,
-        user:
-            state.authState === 'unauthenticated'
-              ? { email: 'user@example.com' }
-              : null,
-        error: null,
-      })),
-
-      mockLogin: async (email: string) => {
-        set({ authState: 'loading', error: null });
-
-        await new Promise<void>((resolve) => {
-          setTimeout(() => resolve(), 1500);
-        });
-
-        // Simulate occasional auth failure
-        if (Math.random() < 0.1) {
-          set({
-            authState: 'unauthenticated',
-            error: 'Invalid credentials. Please try again.',
-          });
-          return;
-        }
-
-        set({
-          authState: 'authenticated',
-          user: { email },
-          userEmail: email,
-        });
-      },
-
-      mockSignup: async (email: string) => {
-        set({ authState: 'loading', error: null });
-
-        await new Promise<void>((resolve) => {
-          setTimeout(() => resolve(), 1500);
-        });
-
-        // Simulate occasional auth failure
-        if (Math.random() < 0.1) {
-          set({
-            authState: 'unauthenticated',
-            error: 'Signup failed. This email may already be registered.',
-          });
-          return;
-        }
-
-        set({
-          authState: 'authenticated',
-          user: { email },
-          userEmail: email,
-        });
-
-        useCreditsStore.getState().initSignupCredits();
-      },
-
-      mockLogout: () => set({
+    (set) => {
+      // Register balance sync callback to break circular dependency
+      setBalanceSync((n) => set({ creditBalance: n }));
+      return {
         authState: 'unauthenticated',
-        user: null,
+        creditBalance: 0,
         userEmail: null,
+        user: null,
         error: null,
         inspectorActive: false,
-      }),
 
-      toggleInspector: () => set((state) => ({
-        inspectorActive: !state.inspectorActive,
-      })),
+        setAuthState: (authState) => set({ authState }),
+        setCreditBalance: (creditBalance) => set({ creditBalance }),
+        setUserEmail: (userEmail) => set({ userEmail }),
 
-      setInspectorActive: (active) => set({ inspectorActive: active }),
-    }),
+        toggleAuth: () => set((state) => ({
+          authState:
+              state.authState === 'authenticated'
+                ? 'unauthenticated'
+                : 'authenticated',
+          userEmail:
+              state.authState === 'unauthenticated' ? 'user@example.com' : null,
+          user:
+              state.authState === 'authenticated'
+                ? { email: 'user@example.com' }
+                : null,
+          error: null,
+        })),
+
+        mockLogin: async (email: string) => {
+          set({ authState: 'loading', error: null });
+
+          await new Promise<void>((resolve) => {
+            setTimeout(() => resolve(), 1500);
+          });
+
+          if (Math.random() < 0.1) {
+            set({
+              authState: 'unauthenticated',
+              error: 'Invalid credentials. Please try again.',
+            });
+            return;
+          }
+
+          set({
+            authState: 'authenticated',
+            user: { email },
+            userEmail: email,
+          });
+        },
+
+        mockSignup: async (email: string) => {
+          set({ authState: 'loading', error: null });
+
+          await new Promise<void>((resolve) => {
+            setTimeout(() => resolve(), 1500);
+          });
+
+          if (Math.random() < 0.1) {
+            set({
+              authState: 'unauthenticated',
+              error: 'Signup failed. This email may already be registered.',
+            });
+            return;
+          }
+
+          set({
+            authState: 'authenticated',
+            user: { email },
+            userEmail: email,
+          });
+
+          useCreditsStore.getState().initSignupCredits();
+        },
+
+        mockLogout: () => set({
+          authState: 'unauthenticated',
+          user: null,
+          userEmail: null,
+          error: null,
+          inspectorActive: false,
+        }),
+
+        toggleInspector: () => set((state) => ({
+          inspectorActive: !state.inspectorActive,
+        })),
+
+        setInspectorActive: (active) => set({ inspectorActive: active }),
+      };
+    },
     {
       name: 'vantageui-auth',
       storage: chromeStorage,

@@ -16,7 +16,9 @@ function PromptDisplay({ framework, prompt }: PromptDisplayProps) {
   const prevPromptRef = useRef<string>(prompt);
 
   useEffect(() => {
-    if (framework === prevFramework) return;
+    if (framework === prevFramework) {
+      return undefined;
+    }
     setPhase('fade-out');
     const timer = setTimeout(() => {
       setPrevFramework(framework);
@@ -30,6 +32,7 @@ function PromptDisplay({ framework, prompt }: PromptDisplayProps) {
       const timer = setTimeout(() => setPhase('idle'), 150);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [phase]);
 
   useEffect(() => {
@@ -38,7 +41,7 @@ function PromptDisplay({ framework, prompt }: PromptDisplayProps) {
     }
   }, [phase, prompt]);
 
-  const currentOpacity = phase === 'idle' ? 1 : phase === 'fade-out' ? 0 : 1;
+  const currentOpacity = phase === 'idle' || phase === 'fade-in' ? 1 : 0;
   const prevOpacity = phase === 'fade-out' ? 1 : 0;
 
   return (

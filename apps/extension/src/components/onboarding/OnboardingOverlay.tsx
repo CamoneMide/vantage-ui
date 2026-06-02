@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { ONBOARDING_STEPS } from '../../config/onboarding.config';
 import { useTooltipPosition } from '../../hooks/useTooltipPosition';
@@ -47,11 +47,9 @@ function OnboardingOverlayInner({
           e.preventDefault();
           (last as HTMLButtonElement).focus();
         }
-      } else {
-        if (document.activeElement === last) {
-          e.preventDefault();
-          (first as HTMLButtonElement).focus();
-        }
+      } else if (document.activeElement === last) {
+        e.preventDefault();
+        (first as HTMLButtonElement).focus();
       }
     }
   }, [tooltipRef]);
@@ -61,13 +59,14 @@ function OnboardingOverlayInner({
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
+    return undefined;
   }, [visible, handleKeyDown]);
 
   return (
     <>
       {/* aria-hidden background to prevent focus leaking behind overlay */}
       <div aria-hidden="true" style={{ display: 'contents' }}>
-        <OnboardingBackdrop targetId={step.targetId} stepId={step.id} />
+        <OnboardingBackdrop targetId={step.targetId} />
       </div>
       <OnboardingTooltip
         step={{ ...step, placement: currentPlacement }}
@@ -92,7 +91,6 @@ export function OnboardingOverlay() {
   const setActiveTab = useUIStore((s) => s.setActiveTab);
 
   const [visible, setVisible] = useState(false);
-  const prevStepRef = useRef<number | null>(null);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setVisible(true));

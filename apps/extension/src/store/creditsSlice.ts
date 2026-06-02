@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 import type { CreditTransaction } from '~mocks/credits.mock';
 
-import { usePopupStore } from './popup-store';
+import { syncBalance } from './store-sync';
 
 interface CreditsState {
   /** The current numeric credit balance. */
@@ -93,8 +93,7 @@ export const useCreditsStore = create<CreditsStore>()(
 
       setCreditBalance: (n) => {
         set({ balance: n });
-        // Sync with usePopupStore
-        usePopupStore.getState().setCreditBalance(n);
+        syncBalance(n);
       },
 
       deductCredit: (description = 'Component Extraction') => {
@@ -108,8 +107,7 @@ export const useCreditsStore = create<CreditsStore>()(
             createdAt: new Date().toISOString(),
           };
 
-          // Sync with usePopupStore
-          usePopupStore.getState().setCreditBalance(newBalance);
+          syncBalance(newBalance);
 
           return {
             balance: newBalance,
@@ -129,8 +127,7 @@ export const useCreditsStore = create<CreditsStore>()(
             createdAt: new Date().toISOString(),
           };
 
-          // Sync with usePopupStore
-          usePopupStore.getState().setCreditBalance(newBalance);
+          syncBalance(newBalance);
 
           return {
             balance: newBalance,
@@ -150,8 +147,7 @@ export const useCreditsStore = create<CreditsStore>()(
             createdAt: new Date().toISOString(),
           };
 
-          // Sync with usePopupStore
-          usePopupStore.getState().setCreditBalance(newBalance);
+          syncBalance(newBalance);
 
           return {
             balance: newBalance,
@@ -167,7 +163,6 @@ export const useCreditsStore = create<CreditsStore>()(
   ),
 );
 
-// Sync creditsStore -> popupStore when credits change from other contexts (e.g. side panel)
-// The direction is one-way: creditsStore is the source of truth for balance.
-// popupStore is updated by every creditsStore action via usePopupStore.getState().setCreditBalance(n).
-// No reverse sync needed — popupStore's creditBalance is derived from creditsStore.
+// Sync creditsStore -> popupStore when credits change from other contexts
+// (e.g. side panel). The direction is one-way: creditsStore is the source of
+// truth for balance.

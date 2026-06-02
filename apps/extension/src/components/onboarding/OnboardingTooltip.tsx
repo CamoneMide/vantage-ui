@@ -1,8 +1,8 @@
 import { Sparkles } from 'lucide-react';
 
-import type { OnboardingStep } from '../../config/onboarding.config';
-
 import type { RefObject } from 'react';
+
+import type { OnboardingStep } from '../../config/onboarding.config';
 
 interface OnboardingTooltipProps {
   step: OnboardingStep
@@ -21,7 +21,7 @@ export function OnboardingTooltip({
   onNext,
   onSkip,
   visible,
-  tooltipRef,
+  tooltipRef = undefined,
 }: OnboardingTooltipProps) {
   const isLastStep = step.id === totalSteps;
 

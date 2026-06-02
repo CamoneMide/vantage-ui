@@ -1,8 +1,10 @@
 import { Check, Clipboard } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
+/* eslint-disable-next-line import/extensions */
 import { generatePrompt } from '~mocks/generate-prompt';
 import type { Framework } from '~mocks/prompts.mock';
+/* eslint-disable-next-line import/extensions */
 import { useExtractionStore } from '~store/extraction-store';
 
 import { FrameworkSelector } from './framework-selector';

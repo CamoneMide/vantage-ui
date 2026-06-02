@@ -61,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${outfit.variable} ${dmSans.variable}`}>
       <head>
         <meta name="theme-color" content="#053B84" />
+        {/* eslint-disable react/no-danger */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -85,6 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }),
           }}
         />
+        {/* eslint-enable react/no-danger */}
       </head>
       <body style={{ fontFamily: 'var(--font-body), DM Sans, sans-serif' }}>{children}</body>
     </html>

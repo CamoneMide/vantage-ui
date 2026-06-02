@@ -23,7 +23,6 @@ export function generatePrompt(
   }
 
   const styles = jsonBlueprint?.styles ?? {};
-  const attributes = jsonBlueprint?.attributes ?? {};
   const ariaAttrs = jsonBlueprint?.ariaAttributes ?? {};
   const childElements = jsonBlueprint?.childElements ?? [];
   const animations = jsonBlueprint?.animations ?? [];

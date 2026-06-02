@@ -1,4 +1,9 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import type { TooltipPlacement } from '../config/onboarding.config';
 
@@ -74,19 +79,30 @@ function calculatePosition(
   };
 }
 
+interface TooltipPositionResult {
+  position: Position
+  currentPlacement: TooltipPlacement
+  tooltipRef: React.RefObject<HTMLDivElement | null>
+}
+
 export function useTooltipPosition(
   targetId: string | null,
   placement: TooltipPlacement,
-): { position: Position; currentPlacement: TooltipPlacement; tooltipRef: React.RefObject<HTMLDivElement | null> } {
+): TooltipPositionResult {
+  const defaultPosition = { top: 0, left: 0 };
   const tooltipRef = useRef<HTMLDivElement | null>(null);
-  const [position, setPosition] = useState<Position>({ top: 0, left: 0 });
+  const [position, setPosition] = useState<Position>(defaultPosition);
   const [currentPlacement, setCurrentPlacement] = useState<TooltipPlacement>(placement);
 
   const recalculate = useCallback(() => {
-    if (!targetId) return;
+    if (!targetId) {
+      return undefined;
+    }
 
     const target = document.getElementById(targetId);
-    if (!target) return;
+    if (!target) {
+      return undefined;
+    }
 
     const targetRect = target.getBoundingClientRect();
     const tooltipHeight = tooltipRef.current?.offsetHeight ?? 200;
@@ -103,6 +119,8 @@ export function useTooltipPosition(
 
     setPosition({ top: result.top, left: result.left });
     setCurrentPlacement(result.placement);
+
+    return undefined;
   }, [targetId, placement]);
 
   useLayoutEffect(() => {
@@ -111,7 +129,9 @@ export function useTooltipPosition(
 
   // Recalculate on resize or scroll
   useLayoutEffect(() => {
-    if (!targetId) return;
+    if (!targetId) {
+      return undefined;
+    }
 
     const handleChange = () => recalculate();
     window.addEventListener('resize', handleChange);
